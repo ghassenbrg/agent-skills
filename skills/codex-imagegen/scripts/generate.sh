@@ -4,7 +4,7 @@
 # Usage:
 #   generate.sh --out PATH.png [--ref IMAGE]... [--overwrite] [--sol | --model NAME] [--effort LEVEL] [--keep-logs] [--] "image brief"
 #
-# Codex (gpt-6-luna, high effort) only generates; this script collects the image from that run. --sol uses gpt-6.1-sol.
+# Codex (gpt-6-luna, xhigh effort) only generates; this script collects the image from that run. --sol uses gpt-6.1-sol.
 # Prints the saved path and image info on success; exits non-zero with diagnostics on failure.
 set -euo pipefail
 
@@ -18,7 +18,7 @@ lower() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
 
 out="" overwrite=0 keep_logs=0
 model="${CODEX_IMAGEGEN_MODEL:-gpt-6-luna}"
-effort="${CODEX_IMAGEGEN_EFFORT:-high}"
+effort="${CODEX_IMAGEGEN_EFFORT:-xhigh}"
 refs=() words=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
