@@ -2,26 +2,33 @@
 # Generate one PNG image through Codex's built-in image_gen tool and save it to an exact path.
 #
 # Usage:
-#   generate.sh --out PATH.png [--ref IMAGE]... [--overwrite] [--] "image brief"
+#   generate.sh --out PATH.png [--ref IMAGE]... [--overwrite] [--sol | --model NAME] [--effort LEVEL] [--keep-logs] [--] "image brief"
 #
+# Codex (gpt-6-luna, high effort) only generates; this script collects the image from that run. --sol uses gpt-6.1-sol.
 # Prints the saved path and image info on success; exits non-zero with diagnostics on failure.
 set -euo pipefail
 
 usage() {
-  sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
   exit "${1:-2}"
 }
 die() { echo "error: $*" >&2; exit 2; }
 is_png() { [[ -s "$1" && "$(head -c 8 "$1" | od -An -tx1 | tr -d ' \n')" == 89504e470d0a1a0a ]]; }
 lower() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
 
-out="" overwrite=0
+out="" overwrite=0 keep_logs=0
+model="${CODEX_IMAGEGEN_MODEL:-gpt-6-luna}"
+effort="${CODEX_IMAGEGEN_EFFORT:-high}"
 refs=() words=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -o|--out) [[ $# -ge 2 ]] || die "$1 needs a value"; out="$2"; shift 2 ;;
     -r|--ref) [[ $# -ge 2 ]] || die "$1 needs a value"; refs+=("$2"); shift 2 ;;
     --overwrite) overwrite=1; shift ;;
+    -m|--model) [[ $# -ge 2 ]] || die "$1 needs a value"; model="$2"; shift 2 ;;
+    --sol) model="gpt-6.1-sol"; shift ;;
+    -e|--effort) [[ $# -ge 2 ]] || die "$1 needs a value"; effort="$2"; shift 2 ;;
+    --keep-logs) keep_logs=1; shift ;;
     -h|--help) usage 0 ;;
     --) shift; words+=("$@"); break ;;
     -*) die "unknown option $1 (put the brief after -- if it starts with '-')" ;;
@@ -51,37 +58,41 @@ if [[ ${#refs[@]} -gt 0 ]]; then
   for ref in "${refs[@]}"; do ref_args+=(-i "$ref"); done
 fi
 
-# Codex works only inside a scratch dir; the project is touched once, after the result is validated.
+# Codex only generates; it never saves. Codex itself stores every generation under generated_images/<thread id>/,
+# and this script copies the run's own image from there (no base64 round-trips, no other job's image).
 log_dir="$(mktemp -d "${TMPDIR:-/tmp}/codex-imagegen.XXXXXX")"
 new="$log_dir/new.png"
 
-prompt="Generate exactly one image with your built-in image_gen tool (not the CLI/API fallback).
+prompt="Call your built-in image_gen tool exactly once (not the CLI/API fallback) to generate the image below.
 ${ref_note}
 
 Brief:
 ${brief}
 
-Then save the final image as PNG to exactly this path: ${new}
-Do not create, modify, or delete any other files. Do not ask questions; make reasonable choices.
-Reply with only the saved absolute path."
+The image is collected automatically once generated: do not save, copy, move or inspect any files and do not run shell
+commands. Do not generate a second image. Do not ask questions; make reasonable choices. When the image is generated,
+reply with only: DONE"
 
 set +e
 codex exec --skip-git-repo-check --ephemeral \
-  -s workspace-write -C "$log_dir" \
-  -c model_reasoning_effort=low \
+  -s read-only -C "$log_dir" \
+  -m "$model" -c model_reasoning_effort="$effort" \
   --json -o "$log_dir/last-message.txt" \
   ${ref_args[@]+"${ref_args[@]}"} -- "$prompt" \
   </dev/null >"$log_dir/events.jsonl" 2>"$log_dir/stderr.txt"
 status=$?
 set -e
 
-# Fallback: if Codex generated the image but didn't save it, take the newest one from its thread folder.
-if ! is_png "$new"; then
-  thread_id="$(grep -o '"thread_id":"[^"]*"' "$log_dir/events.jsonl" | head -1 | cut -d'"' -f4 || true)"
-  gen_dir="${CODEX_HOME:-$HOME/.codex}/generated_images/$thread_id"
-  if [[ -n "$thread_id" && -d "$gen_dir" ]]; then
-    newest="$(ls -t "$gen_dir"/*.png 2>/dev/null | head -1 || true)"
-    [[ -n "$newest" ]] && cp "$newest" "$new"
+thread_id="$(grep -o '"thread_id":"[^"]*"' "$log_dir/events.jsonl" | head -1 | cut -d'"' -f4 || true)"
+gen_dir="${CODEX_HOME:-$HOME/.codex}/generated_images/$thread_id"
+own=()
+if [[ -n "$thread_id" && -d "$gen_dir" ]]; then
+  while IFS= read -r f; do own+=("$f"); done < <(ls -t "$gen_dir"/*.png 2>/dev/null || true)
+fi
+if [[ ${#own[@]} -gt 0 ]]; then
+  cp "${own[0]}" "$new"
+  if [[ ${#own[@]} -gt 1 ]]; then
+    echo "warning: Codex generated ${#own[@]} images in this run; using the last one (all in $gen_dir)" >&2
   fi
 fi
 
@@ -95,8 +106,8 @@ fi
 
 { mkdir -p "$(dirname "$out")" && mv -f "$new" "$out"; } ||
   { echo "error: could not write $out; the generated image is kept at $new" >&2; exit 1; }
-rm -rf "$log_dir"
-echo "saved: $out"
+if [[ $keep_logs -eq 1 ]]; then echo "logs:  $log_dir"; else rm -rf "$log_dir"; fi
+echo "saved: $out ($model, $effort)"
 if command -v file >/dev/null; then
   echo "info:  $(file -b "$out"), $(du -h "$out" | cut -f1 | tr -d ' ')"
 else

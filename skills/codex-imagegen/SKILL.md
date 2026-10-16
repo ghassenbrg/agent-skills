@@ -5,7 +5,7 @@ description: Generate custom raster images (photos, illustrations, hero/backgrou
 
 # Codex ImageGen
 
-Claude can't generate images itself, but the Codex CLI can. `scripts/generate.sh` runs `codex exec` with a focused brief, saves exactly one PNG to the path you choose, and checks the result.
+Claude can't generate images itself, but the Codex CLI can. `scripts/generate.sh` runs `codex exec` with a focused brief, has Codex generate exactly one image, then collects that image itself and saves it as a PNG at the path you choose.
 
 ## Decide first: is a generated image the right tool?
 
@@ -37,9 +37,12 @@ SKILL_DIR=<this skill's directory>
 - `--ref IMAGE` attaches a PNG, JPEG, or WebP reference image (not SVG). Repeat it for several. Say in the brief what each one is for: style to match, a subject to keep, or an image to edit. The reference can be the same file as `--out` (with `--overwrite`).
 - Quote the brief as one argument. If it starts with `-`, put `--` before it.
 - Set the Bash timeout to at least 300000 ms. For several assets, start the commands in parallel, 3–4 at a time.
-- On success it prints `saved: <path>` and `info: PNG image data, W x H, ... RGB|RGBA, size`. On failure it exits non-zero, leaves `--out` untouched, and prints Codex's last message, the stderr tail, and the log directory.
+- Codex runs on `gpt-6-luna` at `high` effort by default. It only relays the brief to the image model, so the cheap model keeps most of the quota for the images themselves. If a Luna result is clearly worse (weak linework, drifts from the references, ignores the brief), regenerate that one with `--sol` (`gpt-6.1-sol`), tell the user what Luna got wrong, and wait for them before switching a whole batch. `--model NAME` or `CODEX_IMAGEGEN_MODEL` picks any other model.
+- `--keep-logs` keeps Codex's event log (token usage) and prints its directory. `--effort LEVEL` (or `CODEX_IMAGEGEN_EFFORT`) sets Codex's reasoning effort (default `high`; `xhigh` also works well; low and medium drift off the brief).
+- Codex never saves files. It runs read-only and only calls `image_gen`; Codex stores each generation under `$CODEX_HOME/generated_images/<thread id>/`, and the script copies this run's image from there. That means no shell steps, about 45–70k input tokens per image, and never another parallel job's picture. If it prints `warning: Codex generated N images`, it used the last one; look at it before using it.
+- On success it prints `saved: <path> (<model>, <effort>)` and `info: PNG image data, W x H, ... RGB|RGBA, size`. On failure it exits non-zero, leaves `--out` untouched, and prints Codex's last message, the stderr tail, and the log directory.
 
-Requires the `codex` CLI, logged in. If it's missing or not logged in, don't install it or log in yourself. Tell the user how to set it up (`npm i -g @openai/codex`, then `codex login`) and continue with placeholders. Codex runs in a scratch directory and can't write to the project. No `OPENAI_API_KEY` is needed. If you are Codex, use your built-in `image_gen` tool directly instead.
+Requires the `codex` CLI, logged in. If it's missing or not logged in, don't install it or log in yourself. Tell the user how to set it up (`npm i -g @openai/codex`, then `codex login`) and continue with placeholders. Codex runs read-only in a scratch directory and can't write anywhere. No `OPENAI_API_KEY` is needed. If you are Codex, use your built-in `image_gen` tool directly instead.
 
 ## Write a good brief
 
