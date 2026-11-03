@@ -162,6 +162,8 @@ a commit afterwards, the claim covers its parent only, and you say so.
   8 to 10). Measure it on the rehearsal and give the coordinator your number.
 - A window of twice the pass time holds two passes. The latest start of the last pass is the deadline minus two passes if you
   want a retry, minus one if you don't, and you say which you chose.
+- **A push to the default branch during your pass** means running the pass again. Ask the coordinator for a time when direct
+  pushes stop and when each sibling repository stops moving, and to tell you of any push before it happens.
 - **Cut times** come from the user via the coordinator, and they can move: use its latest message. A **hard cut** means
   anything later goes in the next snapshot. A **soft cut** means an UPDATE or a late MERGE-READY is accepted until you start
   the last pass. You decide when that is unless the coordinator gave a time, and you tell it the moment the pass starts and
@@ -189,7 +191,8 @@ Needs from the founder: yes to push and release (and any gallery/sibling publish
 ```
 
 **No push, tag or release without the coordinator's explicit GO,** which names the commit, carries the user's yes in their
-words and says what it covers. Refuse a go for a different commit or scope than the one you hold, and any public step
+words (for a standing approval while they are away, those words; check them in the coordinator's session if you can) and
+says what it covers. Refuse a go for a different commit or scope than the one you hold, and any public step
 it does not name (a holding release, pushing another repository's branch). If you rebuild after the yes, the yes lapses:
 send a new RELEASE?. A relayed yes is not a permission: your own permission system may refuse, and then the user answers
 in your session; tell the coordinator exactly what to ask. Don't ask another session to do it for you. Never run local
@@ -258,3 +261,4 @@ A result is a claim until you looked at it, yours included.
 - Don't push other people's branches or edit their branches; merge their recorded tips into yours.
 - Coordinator messages arrive on their own, behind your current turn. Don't poll; when you are only waiting, end your turn.
 - A pass that tested one commit is not evidence for another.
+- A check that needs real clicks or keys waits for a slot from the coordinator: one session on the screen at a time.

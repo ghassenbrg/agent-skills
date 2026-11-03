@@ -143,6 +143,22 @@ dropped branch's owner what happens next.
 
 Without an integrator, the sessions land their own work with the protocol below.
 
+## While the user is away
+
+- **A standing approval** is an instruction in the user's own words for while they are away ("release what's ready, don't
+  hold it for my testing"). It replaces the per-push asks for what it names, until they are back. Write down the words, what
+  they cover and when they end, and show sessions the words. You give the GO yourself, quoting them, and sessions still send
+  you RELEASE? and PUSH?: you still own the order. It lifts no guardrail (green suite, independent review of anything that
+  widens reach, no force push), and what would have waited for the user goes on a "not verified, for the user" list instead
+  of holding the release. Something they said to wait on, or didn't name, still waits. A session's own permission prompt
+  still stops it: it tells you, and it waits for the user.
+- **Click slots.** An idle machine makes real clicks and keys possible, one session on the screen at a time. Keep the queue
+  and hand out slots by name, 10 minutes at most, nothing that takes over the machine, the test app stopped right after. The
+  session tells you when it is done, and the next one starts.
+- **Pushes during an integration.** Each one moves the fast-forward base and the build number, so a push during a pass means
+  the pass is run again. Before the cut they may land, but through you, and tell the integrator first. Name a time when direct
+  pushes stop and a time when each sibling repository stops moving, before the last pass: its suite runs against that build.
+
 ## Landing and releasing
 
 One at a time, with a written protocol, for sessions that land their own work (with an integrator, see above):
