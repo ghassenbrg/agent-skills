@@ -138,7 +138,10 @@ On the **exact final commit**, in this order, with a clean tree:
    commit just before the suite. A suite of tests that need a built sibling and silently skip them is not a pass: look for
    the tests that must have run. A high skip count, or a suite that finishes in about a thousandth of a second, means the
    sibling's programs are old. Record what was skipped and why in the RELEASE?: a test that skips because the sibling
-   doesn't hold a piece yet is owed by whoever publishes that piece, who runs it against the release.
+   doesn't hold a piece yet is owed by whoever publishes that piece, who runs it against the release. A test expecting the sibling's next design must read
+   which one the checkout holds, or it stays red until that sibling publishes: the owner's fix. Read the release workflow
+   too: if it doesn't build the sibling, those tests skip there, a red one doesn't stop the release, and only this pass and
+   CI run them.
 4. If red: first run the failing test on `origin/<default>` with the same sibling refs. If it fails there too, no branch
    is at fault and no base is green: tell the coordinator, and the user decides whether to release over it. Otherwise find
    the branch the failing test belongs to (the test's subject, then `git log` of the files), drop it by
@@ -207,8 +210,9 @@ After the go, and only then:
    have confirmed the release. A refused push stops here: tell the coordinator.
 3. Check `origin/<default>` is your commit, and only then run the release workflow with the inputs the project's skill
    names: it builds whatever the branch holds. Note the run id, and check that run is on your commit.
-4. **Watch it to the end,** and the project's CI on the pushed commit beside it (report red at once; wait for CI first
-   only if the coordinator says so). Signing and notarization may wait a long time; check why before rerunning, and
+4. **Watch it to the end,** and the project's CI on the pushed commit beside it (report red at once, having read the step
+   that failed: a rerun that fails fetching packages says nothing about the tests, and an earlier red test still stands;
+   wait for CI first only if the coordinator says so). Signing and notarization may wait a long time; check why before rerunning, and
    understand what a half-finished run left before running another. Tell the coordinator when it starts and when
    anything changes.
 5. **Confirm the real thing:** the tag exists and points at your commit, the assets are there with their checksum, the
