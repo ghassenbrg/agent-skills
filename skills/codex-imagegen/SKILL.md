@@ -51,17 +51,42 @@ Codex passes your brief to the image model, so write it like an art-direction no
 - **Purpose and placement:** "Landing-page hero, the headline overlays the left third", or "9:16 opening shot of a Remotion food video".
 - **Subject and style:** concrete, with nothing extra that wasn't asked for. Use the project's palette (pull it from its CSS/theme) and visual language. Lens and lighting terms work well for photos.
 - **Composition:** square, landscape, or portrait, and where to leave negative space.
-- **Constraints:** "no text, no watermark, no logos", "transparent background" for sprites and cutouts, and anything to avoid.
+- **Constraints:** "no text, no watermark, no logos", and anything to avoid. For anything that must be transparent, follow the next section.
 
 **Sets of images** (game assets, a slide series, gallery cards): write one shared style sentence and reuse it word for word in every brief. Generate one image first, check it, then pass it as `--ref` for the rest so they stay consistent.
 
+## Transparent images
+
+Characters, sprites, cutouts and anything placed over a page or a scene must be **generated transparent from the start**. The image model can return real alpha (the script's `info:` line says `RGBA`).
+
+**Never** generate on white, green or any other background and then delete it with rembg, a chroma key, a threshold or similar. It looks cheap: white patches under feet, between legs and around small props, and halos on dark pages. If a result has no alpha or has leftovers, generate it again. Don't repair it.
+
+**Say so in the brief,** in these words or close to them:
+
+> Generate on a genuinely transparent background from the very start: paint no background, no floor, no ground, no contact shadow, no glow and no white or coloured patch anywhere. Every pixel outside the subject is fully transparent, including between and under the feet.
+
+- **Redoing a flawed cutout:** pass it as `--ref`, and say that its leftovers must not be copied. Describe the subject's shape and colours too, or it drifts: say what must stay ("one plain smooth coral colour, no stitching") and pass a finished image from the set as a second `--ref` for surface and lighting only.
+- **Leave out small loose marks** (sparks, music notes) unless they matter. They're where leftovers hide.
+
+**Check every transparent image the same way, including ones you didn't generate.** Art already in a project may be an old cutout, so check it before you reuse it.
+
+```bash
+python3 "$SKILL_DIR/scripts/check_transparent.py" a.png b.png c.png --sheet /tmp/check.png
+```
+
+Then read the sheet. It shows each image on magenta, dark and white, plus its bottom edge enlarged. Transparent corners prove nothing: a patch under the feet touches the subject and the corners stay clear. Previews hide it too, because transparent pixels look black or white. Look at the sheet at a real size, and judge the subject against its reference as well, since a clean edge on the wrong character is still wrong.
+
+- `--clean out.png` clears faint specks far from the subject and trims to it. It doesn't touch the subject's own soft edge, and it's only for specks: a patch attached to the subject means generate again.
+- Trim with `--clean`, not plain `im.getbbox()`, because faint dust often makes that box the whole canvas.
+- Keep quality when you convert: `cwebp -q 92 -alpha_q 100 -m 6 in.png -o out.webp`. When scaling down, use LANCZOS on RGBA. Keep at least twice the largest size it's shown at.
+
 ## Verify and integrate
 
-1. **Look at the image.** Read the PNG file to see it. Check the subject, style, composition, any artifacts, and whether it fits where it will go. Transparent pixels may show as black in the preview. If transparency matters, check that the corners have alpha 0, for example with a quick PIL check.
+1. **Look at the image.** Read the PNG file to see it. Check the subject, style, composition, any artifacts, and whether it fits where it will go. Transparent pixels may show as black in the preview. If it should be transparent, run the check in "Transparent images".
 2. **If it misses**, rerun with one targeted change to the brief, and pass `--ref` with the previous result when you want to keep most of it. Stop after about 2 retries and explain the gap to the user rather than looping. If Codex refuses on policy grounds, tell the user. Don't rephrase the brief to get around the refusal.
 3. **Fit it to the target.** The model chooses the output size, so it won't be exact.
    - Crop or resize with PIL, `sips`, or ImageMagick. On the web, `object-fit: cover` often removes the need to crop.
-   - Trim transparent margins from sprites before scaling them, for example with PIL `im.crop(im.getbbox())`.
+   - Trim transparent margins from sprites before scaling them, with `check_transparent.py --clean`.
    - To convert to WebP or JPEG, use PIL or `cwebp`; `sips` can't write WebP. If you convert, delete the PNG unless something still uses it.
 4. **Wire it in and report.** Reference the image from the code that uses it (meaningful `alt` text on the web, `staticFile()` in Remotion). Tell the user each saved path and what it's for.
 
