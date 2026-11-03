@@ -7,6 +7,7 @@ Reusable [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-s
 | Skill | What it does | Requires |
 |---|---|---|
 | [`coordinator`](skills/coordinator/SKILL.md) | Coordinates many parallel Claude sessions on one project: registers them, assigns file ownership and number blocks, catches overlaps, sequences releases one at a time, verifies claims against git and CI, and relays your decisions in your words. It doesn't implement. | The Claude desktop app's session tools |
+| [`integrator`](skills/integrator/SKILL.md) | The other half of the coordinator: builds one integration branch, merges the branches the coordinator reports ready (lowest conflict first), resolves docs and generated-file conflicts but never other people's code, runs one suite and release build on the final commit, and pushes and releases only on the coordinator's explicit go. It doesn't talk to the other sessions. | The Claude desktop app's session tools |
 | [`codex-imagegen`](skills/codex-imagegen/SKILL.md) | Generates project image assets (heroes, illustrations, sprites, video stills, …) by delegating to Codex's built-in image generation through `codex exec`, then saves and verifies the PNG. | [Codex CLI](https://github.com/openai/codex), logged in |
 
 ## Install
