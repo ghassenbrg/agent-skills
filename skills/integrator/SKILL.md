@@ -224,7 +224,7 @@ After the go, and only then:
    project's release-edit command and tell the coordinator what you changed. They are public text: removing or softening
    a claim, or adding a not-verified line, needs no new go; adding a claim goes to the coordinator first. Don't rewrite
    history to do it. Subjects stay public whatever the notes say, merge commits named after their branches too. No
-   mechanism detail for a hardening, and the not-verified list is in the notes where the coordinator says so.
+   mechanism detail for a hardening, and the not-verified list goes in the notes.
 7. If it fails: say whether the default branch still compiles. If it doesn't, the coordinator tells everyone not to
    branch or rebase, and the hotfix is the next number. Don't hide a failed release behind a retry. A rerun on the same
    commit, with the same inputs and the cause understood, is covered by the GO: tell the coordinator first. Anything with
@@ -271,7 +271,8 @@ as soon as you know: what you said, what's true, what it changes. It may have pa
   folders and stopped when you are done. Disk fills during integration passes: clean up what you created.
 - Don't push other people's branches or edit their branches; merge their recorded tips into yours.
 - Coordinator messages arrive on their own, behind your current turn. Don't poll; when you are only waiting, end your turn.
-- A pass that tested one commit is not evidence for another.
-- Scripts run under `/bin/bash` with `set -euo pipefail`, absolute paths, and `git rev-parse --show-toplevel` checked first:
-  a failed `cd` runs the rest in the wrong tree. In zsh, `$C:refs/heads/main` reads `:r` as a modifier, so write `"${C}:refs/…"`.
+- A pass that tested one commit is not evidence for another with a different tree.
+- The shell tool's directory resets to the project root between calls, and a failed `cd` leaves later lines in the wrong tree.
+  Use `git -C <absolute path>` for every repository command and absolute paths otherwise; scripts under `/bin/bash` with
+  `set -euo pipefail`; `git -C <path> rev-parse --show-toplevel` checked before anything destructive. In zsh, `$C:refs/heads/main` reads `:r` as a modifier, so write `"${C}:refs/…"`.
 - A check that needs real clicks or keys waits for a slot from the coordinator: one session on the screen at a time.
