@@ -134,8 +134,11 @@ On the **exact final commit**, in this order, with a clean tree:
 1. Regenerate anything generated, and commit it as its own commit.
 2. The **release build** (debug-only builds miss release-only breakage; code wrongly inside a debug-only block builds
    fine and fails to ship).
-3. The **full suite**, serially, against clean copies of every sibling repository at the right ref. A suite of tests
-   that need a built sibling and silently skip them is not a pass: look for the tests that must have run.
+3. The **full suite**, serially, against clean copies of every sibling repository at the right ref, each rebuilt at that
+   commit just before the suite. A suite of tests that need a built sibling and silently skip them is not a pass: look for
+   the tests that must have run. A high skip count, or a suite that finishes in about a thousandth of a second, means the
+   sibling's programs are old. Record what was skipped and why in the RELEASE?: a test that skips because the sibling
+   doesn't hold a piece yet is owed by whoever publishes that piece, who runs it against the release.
 4. If red: first run the failing test on `origin/<default>` with the same sibling refs. If it fails there too, no branch
    is at fault and no base is green: tell the coordinator, and the user decides whether to release over it. Otherwise find
    the branch the failing test belongs to (the test's subject, then `git log` of the files), drop it by
@@ -177,6 +180,7 @@ RELEASE? integration, <commit>, <N> commits on origin/<default> <base>
 Merged: branch@tip (+ one line each)
 Dropped: branch, reason          (including "not ready yet")
 Evidence: release build OK, full suite <counts> on <commit>, against <sibling refs>, <log path>
+Skipped: each test or suite, why, and who runs it later
 Fast-forward: yes (merge-base --is-ancestor origin/<default> <commit>), build number would be <N>
 Dropped work absent: yes (no dropped or withdrawn tip is an ancestor of <commit>)
 Public text checked: subjects, trailers, nothing sensitive
