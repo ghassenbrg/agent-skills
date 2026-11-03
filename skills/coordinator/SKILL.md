@@ -111,7 +111,9 @@ Not verified: ...   Priority: ...
 Also in your messages: the plan; the **cut** with its time (hard: later goes in the next release; soft: updates accepted
 until the integrator starts its last pass, which it announces); the **merge order** and **drop order** the user approved
 (a top-priority piece goes first and is dropped last); the sibling refs to test against; which code conflicts an owner may
-be asked about; and the user's timing. Then, in order of arrival: `UPDATE <branch>, <new tip>`, `WITHDRAWN <branch>, <tip>,
+be asked about; and the user's timing. Ask the user's per-piece yes for a widening piece before you pass its MERGE-READY,
+or say "none" and that you are asking: the integrator holds it until the yes comes. Then, in order of arrival:
+`UPDATE <branch>, <new tip>` with the Suite, Review and Not verified lines for that tip, `WITHDRAWN <branch>, <tip>,
 why` (an owner who measured and failed, or found a hole, after MERGE-READY), and plan changes. The integrator answers each
 update with in or "next release"; tell the owner that, so it isn't left guessing.
 
@@ -123,8 +125,10 @@ it (tell the sessions), and the RELEASE? request.
 
 **On RELEASE?:** run the checks under "Verify, don't trust" yourself on its commit; compare merged and dropped with the
 MERGE-READY messages you passed (nothing merged you didn't pass, nothing dropped without a reason you can tell its
-owner); check every gate you promised held. Then show the user the merged list, the dropped list and the not-verified
-list, and take their yes, plus their per-piece yes for any widening piece. Your **GO** to the integrator names what it
+owner); check every gate you promised held, and that no dropped or withdrawn tip is inside the commit
+(`git merge-base --is-ancestor <tip> <commit>` must fail: a tip rebased over a base carries what that base held). Then show
+the user the merged list, the dropped list and the not-verified list, say again which widening pieces they said yes to,
+and take their yes. Your **GO** to the integrator names what it
 covers, with their words:
 
 ```text
@@ -226,7 +230,8 @@ Coordinator here. I coordinate the open <project> sessions, and you're registere
 2. Local only: no push, publish or release without the user's explicit yes for this work. When you hold it, send me
    their words, the end of your test run, and "RELEASE? <branch>, <commit>, tests green, release build OK". One at a time.
    (With an integrator: send me MERGE-READY, in the form I give you, instead; green suite on your own tip first. Don't
-   message the integrator; I pass it on and bring you its answers.)
+   message the integrator; I pass it on and bring you its answers. After MERGE-READY, new commits or a measured failure
+   mean you send me UPDATE, with suite and review for the new tip, or WITHDRAWN, at once.)
 3. Numbers: yours are <block>. Announce any migration with its name before writing it. Taken: <list>.
 4. Overlaps: <who owns what near you>. Send me the files you expect to touch and every new shared name before coding.
 5. Shared state: <the project's hazards, from the list below>.
