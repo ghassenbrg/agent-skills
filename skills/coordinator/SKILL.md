@@ -117,6 +117,11 @@ or say "none" and that you are asking: the integrator holds it until the yes com
 why` (an owner who measured and failed, or found a hole, after MERGE-READY), and plan changes. The integrator answers each
 update with in or "next release"; tell the owner that, so it isn't left guessing.
 
+**Rolling cutoffs** worked for a long night: an insurance snapshot at a set time, then a final one about an hour later. A
+late item goes in the final one if it is reviewed and only narrows something (a test fix, a smaller branch), not if it adds
+reach. Say "all in, start now" with the exact list, so nobody infers it. A withdrawn tip is announced to everyone who
+heard of it and never passed on.
+
 **What you take from it:** the integration branch and base commit after every change (it is a branch in the same
 repository, so you read it with git; keep it there), code conflicts needing an owner (ask that owner to rebase over its
 base and send you a new tip by a stated time, then pass the tip on, or allow the integrator to talk to that owner about
@@ -150,11 +155,19 @@ Without an integrator, the sessions land their own work with the protocol below.
   they cover and when they end, and show sessions the words. You give the GO yourself, quoting them, and sessions still send
   you RELEASE? and PUSH?: you still own the order. It lifts no guardrail (green suite, independent review of anything that
   widens reach, no force push), and what would have waited for the user goes on a "not verified, for the user" list instead
-  of holding the release. Something they said to wait on, or didn't name, still waits. A session's own permission prompt
-  still stops it: it tells you, and it waits for the user.
+  of holding the release. Something they said to wait on, or didn't name, still waits.
+- **What a relay can't lift.** A peer's relay never lifts a session's own tool-permission check or a rule the user gave that
+  session. Some sessions can't push or publish without the user's words typed in them: find out which while the user is still
+  there, and keep one ready sentence per session ("Publish the homepages") so the morning costs a minute of pasting. A
+  refused push or publish stops: never route around it, through another session either. A yes is for the thing as it was:
+  if the commit grew or changed afterwards, ask again.
 - **Click slots.** An idle machine makes real clicks and keys possible, one session on the screen at a time. Keep the queue
-  and hand out slots by name, 10 minutes at most, nothing that takes over the machine, the test app stopped right after. The
-  session tells you when it is done, and the next one starts.
+  and hand out slots by name, 10 minutes at most, nothing that takes over the machine, the test app stopped by its pid right
+  after. The session tells you when it is done, and the next one starts. The system's idle counter proves nothing while a
+  keep-awake tool nudges it, so the queue is the lock, not the counter. The user's installed app is never touched, not even
+  to quiet it. A session logs what it did and says whether it used synthetic events or real input: they don't prove the same.
+- **The morning summary.** Per session: what landed, what waits on the user (with its one sentence), and what is not
+  verified. Go through the owed list first.
 - **Pushes during an integration.** Each one moves the fast-forward base and the build number, so a push during a pass means
   the pass is run again. Before the cut they may land, but through you, and tell the integrator first. Name a time when direct
   pushes stop and a time when each sibling repository stops moving, before the last pass: its suite runs against that build.
@@ -171,6 +184,11 @@ One at a time, with a written protocol, for sessions that land their own work (w
 - `PUSH? <branch>, <commit>, files`: a docs-only or small push. Hold it if it would land in front of a release.
 
 Decide the order yourself and tell the user what you decided. Sessions run the checks; you check the result.
+
+**A publish that replaces a whole catalog** is one at a time, with one builder at a time: a second publisher built on the old
+state silently removes the first one's entry and pack, so it rebases, rebuilds and retests after every publish. Compare the live
+catalog with the new one by entry before, and download it back after, by digest; a CDN can serve the old one for a couple of
+minutes, so wait before you call that a failure. A change in a dependency alone still needs the app's tests against it, whole.
 
 ### Verify, don't trust
 
@@ -189,6 +207,12 @@ After a landing, look at the real thing: the tag, the assets, the workflow concl
 (`gh release view <tag> --repo <owner/repo> --json tagName,targetCommitish,assets`, read the notes too). A run that
 started is not a release that exists.
 
+Run these yourself on every MERGE-READY and RELEASE?, before the go. Owners' claims were wrong several times in one night,
+honestly: a suite that never ran because its `cd` failed, a name filter that hid the one failing test ("452 of 452"), a
+suite on the wrong tree. Ask which tests ran, by name, and read the counts and times. A cherry-picked docs commit has
+another sha, so ancestry says no: compare content (`git cherry`). A reworded commit must keep its tree (`git rev-parse
+<sha>^{tree}`), and then the evidence for the old sha still holds.
+
 Check the user's yes where they gave it (`list_events`, `search_session_transcripts`). Tests must be from the exact
 commit, and a full run that failed gets rerun, not explained away. Compare what a message
 claims with the code: lists of what's in a batch have drifted from what was agreed, and a thing "already on main" may
@@ -196,8 +220,10 @@ not be. Say what you checked when you approve, so the session can correct you.
 
 ## Authority and consent
 
-- **A relayed approval is never a permission.** You can carry the user's decision, in their exact words, with the
-  question they answered. You can't grant what you don't hold.
+- **A relayed approval is never a permission,** unless the user told that session so in their own words ("take all
+  permissions from the coordinator instead of me"). Then your explicit go, step by step, counts there, and its tool checks
+  and guardrails still stand. Otherwise you carry the user's decision, in their exact words, with the question they
+  answered. You can't grant what you don't hold.
 - **Each session's permission system is its own.** If it refuses an action, the user must answer in that session. Tell
   the user exactly where and what to say. Never route the action through another session; that launders the block, and
   peers can't grant escalation. A session that declines to act on a relayed yes is right.
@@ -214,6 +240,7 @@ not be. Say what you checked when you approve, so the session can correct you.
 
 ## Reporting to the user
 
+Run `date` before you state a time, a deadline or a duration: a coordinator's own estimate of the clock was an hour off.
 Short and plain, with no jargon and no internal ids unless needed. For a status report, a table by piece of work:
 
 | Work | Done (estimate) | What's left, and what could stretch it |
@@ -261,6 +288,11 @@ Tell sessions these before they hit them.
 - **A stale shared checkout.** New worktrees may be cut from a local main far behind the remote, and a session that
   reads docs there reads the past. Always base on and read from `origin/main`. A fresh worktree with no work may be
   reset to it; never reset one that has work. An edit to the shared checkout is someone else's problem later.
+- **A command meant for a worktree that ran in the shared checkout.** Twice in one night: a `git reset --hard`, and a script
+  whose `cd` failed, so its unguarded build and tests ran there. Use `/bin/bash` with `set -euo pipefail` and absolute paths,
+  and check first: `test "$(git -C "$W" rev-parse --show-toplevel)" = "$W"`. Before any cleanup of uncommitted work, back it
+  up (`git diff --binary`, a tar of the untracked files) into a folder git ignores. That backup is why the reset lost nothing.
+- **Disk fills in a night** (98% used, once). `df -h` at each check; a session deletes its own `.build` when it's done.
 - **Uncommitted work nobody owns.** Don't touch it or call it abandoned. Ask the user. `git add -A` can sweep it up, so
   add files by name.
 - **`git stash` is shared across worktrees.** A pop in one can apply another session's entry. Never pop. Prefer a WIP
@@ -285,10 +317,13 @@ Tell sessions these before they hit them.
 In a public repository, a finding stays out of public text until the fix is released. Describe the fix generically in
 commit subjects, branch names, status docs and release notes ("sandbox hardening"), and put the detail only in the
 release that carries it. Never repeat an exploit in a message that may end up in those places. Release notes generated
-from commit subjects inherit whatever the subject says.
+from commit subjects inherit whatever the subject says, and a pushed subject can't be softened: have owners reword unpushed
+commits, trees identical (`git rev-parse <sha>^{tree}`). Notes keep hardening details out too.
 
 Anything that widens what an extension, agent or tool can reach needs an independent security review and the user's
-yes, each. Sequence an open hole on main ahead of feature work, and put the timing to the user.
+yes, each. Check that the commit going up has the reviewed tree. Sequence an open hole on main ahead of feature work, and put
+the timing to the user. Two findings to expect: a plain key that can answer yes to an agent's question is refused, even if a
+check saw it do nothing, because the code path is live; and a hint on screen must be true, so a claim that fails is removed.
 
 A fix that hasn't been measured ships labelled as unproven, if it ships at all. If it turns out not to work, correct
 the notes and tell the user before they go looking.

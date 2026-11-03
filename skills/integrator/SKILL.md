@@ -84,7 +84,7 @@ Anything failing a gate is not "dropped", it is "not yet": say so to the coordin
    coordinator's order; a priority piece it names goes in early and is dropped last. When priority and conflict order disagree, the lower-priority branch is the one that
    goes if they collide.
 2. **Rehearse before the cut.** As soon as two branches are ready, merge them into a local base branch (say
-   `integration-base`) and run the build and suite on it while you wait for the rest. Conflicts found early give owners
+   `integration-base`) and run the build and suite on it as each new MERGE-READY arrives. Conflicts found early give owners
    time to fix them; conflicts found at the cut cost the snapshot. Tell the coordinator the base commit and what each
    merge touched. At the cut the integration branch starts from this base (`git switch -C <integration> <base>`, or a
    rebuild if the default branch moved) and takes the rest; the RELEASE? comes from the integration branch.
@@ -141,7 +141,7 @@ On the **exact final commit**, in this order, with a clean tree:
    doesn't hold a piece yet is owed by whoever publishes that piece, who runs it against the release. A test expecting the sibling's next design must read
    which one the checkout holds, or it stays red until that sibling publishes: the owner's fix. Read the release workflow
    too: if it doesn't build the sibling, those tests skip there, a red one doesn't stop the release, and only this pass and
-   CI run them.
+   CI run them. Name the ones that really ran in the RELEASE?; a green total doesn't say.
 4. If red: first run the failing test on `origin/<default>` with the same sibling refs. If it fails there too, no branch
    is at fault and no base is green: tell the coordinator, and the user decides whether to release over it. Otherwise find
    the branch the failing test belongs to (the test's subject, then `git log` of the files), drop it by
@@ -184,7 +184,8 @@ Send the coordinator:
 RELEASE? integration, <commit>, <N> commits on origin/<default> <base>
 Merged: branch@tip (+ one line each)
 Dropped: branch, reason          (including "not ready yet")
-Evidence: release build OK, full suite <counts> on <commit>, against <sibling refs>, <log path>
+Evidence: release build OK, full suite <counts> on <commit>, against <sibling refs> rebuilt at pass start, <log path>
+Really ran: the tests that need a sibling, by name, with their times
 Skipped: each test or suite, why, and who runs it later
 Fast-forward: yes (merge-base --is-ancestor origin/<default> <commit>), build number would be <N>
 Dropped work absent: yes (no dropped or withdrawn tip is an ancestor of <commit>)
@@ -211,8 +212,9 @@ After the go, and only then:
 3. Check `origin/<default>` is your commit, and only then run the release workflow with the inputs the project's skill
    names: it builds whatever the branch holds. Note the run id, and check that run is on your commit.
 4. **Watch it to the end,** and the project's CI on the pushed commit beside it (report red at once, having read the step
-   that failed: a rerun that fails fetching packages says nothing about the tests, and an earlier red test still stands;
-   wait for CI first only if the coordinator says so). Signing and notarization may wait a long time; check why before rerunning, and
+   that failed: a rerun that fails fetching packages says nothing about the tests, and an earlier red test still stands.
+   A newer push can cancel a running CI, and cancelled isn't green: read CI on the newest commit. Wait for CI first
+   only if the coordinator says so). Signing and notarization may wait a long time; check why before rerunning, and
    understand what a half-finished run left before running another. Tell the coordinator when it starts and when
    anything changes.
 5. **Confirm the real thing:** the tag exists and points at your commit, the assets are there with their checksum, the
@@ -221,13 +223,17 @@ After the go, and only then:
 6. **Read the notes.** If they come from commit subjects and one is false, misleading or too specific, fix them with the
    project's release-edit command and tell the coordinator what you changed. They are public text: removing or softening
    a claim, or adding a not-verified line, needs no new go; adding a claim goes to the coordinator first. Don't rewrite
-   history to do it.
+   history to do it. Subjects stay public whatever the notes say, merge commits named after their branches too. No
+   mechanism detail for a hardening, and the not-verified list is in the notes where the coordinator says so.
 7. If it fails: say whether the default branch still compiles. If it doesn't, the coordinator tells everyone not to
    branch or rebase, and the hotfix is the next number. Don't hide a failed release behind a retry. A rerun on the same
    commit, with the same inputs and the cause understood, is covered by the GO: tell the coordinator first. Anything with
    a new commit, a hotfix included, needs its MERGE-READY, RELEASE? and GO like any other.
 8. Report to the coordinator (below), and the new default-branch commit, so it can tell every session what to rebase
    over. Then the integration branch and your temporary worktrees are cleaned up (only the ones you made).
+
+A docs-only or tests-only push between snapshots needs no release run, on a go like any other: it moves the build number, so
+it doesn't happen during a pass. You never publish a sibling's gallery or packages: their owner does, on its own go.
 
 ## Withdrawals and updates
 
@@ -254,7 +260,8 @@ Confirmed: tag target, assets, workflows green on <commit>, notes read (and edit
 Not verified: ...   Follow-ups owed to sessions: ...
 ```
 
-A result is a claim until you looked at it, yours included.
+A result is a claim until you looked at it, yours included. When something you told the coordinator turns out wrong, say so
+as soon as you know: what you said, what's true, what it changes. It may have passed it on.
 
 ## Hazards
 
@@ -265,4 +272,6 @@ A result is a claim until you looked at it, yours included.
 - Don't push other people's branches or edit their branches; merge their recorded tips into yours.
 - Coordinator messages arrive on their own, behind your current turn. Don't poll; when you are only waiting, end your turn.
 - A pass that tested one commit is not evidence for another.
+- Scripts run under `/bin/bash` with `set -euo pipefail`, absolute paths, and `git rev-parse --show-toplevel` checked first:
+  a failed `cd` runs the rest in the wrong tree. In zsh, `$C:refs/heads/main` reads `:r` as a modifier, so write `"${C}:refs/…"`.
 - A check that needs real clicks or keys waits for a slot from the coordinator: one session on the screen at a time.
