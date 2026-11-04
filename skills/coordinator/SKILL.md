@@ -79,6 +79,10 @@ send what it now releases. Before any status report, go through the list and say
 - **Idle is not done.** A session may be waiting on a background run, its subagents, an approval or you. Check before
   you chase it, then ask what it is waiting for.
 - **New work from the user:** pick the best-fit session by ownership, or give the user a ready prompt for a new one.
+- **The user's own testing never blocks landing.** When the user says their manual testing happens after a snapshot is
+  installed, sessions keep working, merge and release little by little once everything they can check themselves is checked
+  (tests, renders, independent reviews), and list what only a person can try as "not verified, for the user". Never
+  hold a merge or release for a check that needs the user's hands, and never ask them to test before it ships.
 - **Short session names.** Every session gets a title of one or two words ("Sideflow", "Small fixes", "Permissions"), so many
   sessions stay easy to follow. Give `start_session` a short `title` and `name`, and rename a generic or long title at once.
 - **The user's findings come back as a cleaned list.** When the user hands you raw notes from testing, write them as one
