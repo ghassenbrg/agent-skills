@@ -79,6 +79,20 @@ send what it now releases. Before any status report, go through the list and say
 - **Idle is not done.** A session may be waiting on a background run, its subagents, an approval or you. Check before
   you chase it, then ask what it is waiting for.
 - **New work from the user:** pick the best-fit session by ownership, or give the user a ready prompt for a new one.
+- **Short session names.** Every session gets a title of one or two words ("Sideflow", "Small fixes", "Permissions"), so many
+  sessions stay easy to follow. Give `start_session` a short `title` and `name`, and rename a generic or long title at once.
+- **The user's findings come back as a cleaned list.** When the user hands you raw notes from testing, write them as one
+  file (their exact words in quotes, what they saw, what they want), sort it by owner, mark each item bug, UX, design or
+  big, and route it: a session that already owns the area gets its items; all small fixes and improvements go to ONE
+  "small fixes" session; a big new topic gets its own session. Send bugs first, then clarity, then design; a large
+  redesign starts with a written plan and real pictures that you answer for the user. Say where each item went, in a table.
+  If their note names an area with no list, ask the owner to reproduce it and report before you assume what is wrong.
+- **Relay "keep clear" lists.** When a session names the files it is changing, give that list to every session working
+  nearby that day. Two sessions in the same sensitive files (permissions, shared kits) take turns: the one further along
+  lands first and the other does inventory or design until then.
+- **A cause read from the code is not a finding** until a run or test reproduces it. Ask which it is.
+- **Every new rule or lesson goes into the skills the same day**: the global skills in the skills repository (the user's
+  `~/.claude/skills` links to it) and the project's own skills. Say so in your closing report.
 
 ## With an integrator
 
@@ -225,6 +239,11 @@ not be. Say what you checked when you approve, so the session can correct you.
   permissions from the coordinator instead of me"). Then your explicit go, step by step, counts there, and its tool checks
   and guardrails still stand. Otherwise you carry the user's decision, in their exact words, with the question they
   answered. You can't grant what you don't hold.
+- **A session that asks to read the user's real data or send synthetic input** (their real log or audit, a scripted mouse
+  drag) gets an answer only under the user's standing order, with limits: read only, only the named rows or lines,
+  counts and kinds reported and never file names or contents; synthetic input only when the machine has had no input
+  for 15 minutes, aborting on any input, in a scratch window, one screen user at a time, never answering a system security
+  dialog. Its own permission check still decides.
 - **Each session's permission system is its own.** If it refuses an action, the user must answer in that session. Tell
   the user exactly where and what to say. Never route the action through another session; that launders the block, and
   peers can't grant escalation. A session that declines to act on a relayed yes is right.
