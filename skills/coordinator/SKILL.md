@@ -314,6 +314,11 @@ Tell sessions these before they hit them.
   command, absolute paths otherwise, `/bin/bash` with `set -euo pipefail` in scripts, and before anything destructive
   `test "$(git -C "$W" rev-parse --show-toplevel)" = "$W"`. Before any cleanup of uncommitted work, back it
   up (`git diff --binary`, a tar of the untracked files) into a folder git ignores. That backup is why the reset lost nothing.
+- **A test that opens windows on the user's own screen.** A session's debug app popped a panel under the real pointer and
+  took two clicks and some typing. Put this in every brief: test apps run with their windows quiet or off every screen,
+  never above the user's other windows (a full-screen browser, say), never taking focus, clicks or keys. Prefer renders
+  and reads of the app's own state to real screen use. If a check truly needs the screen, ask the coordinator first;
+  the user said that if this limits a test, the limit is acceptable, but it is the last resort.
 - **Disk fills in a night** (98% used, once). `df -h` at each check; a session deletes its own `.build` when it's done.
 - **Uncommitted work nobody owns.** Don't touch it or call it abandoned. Ask the user. `git add -A` can sweep it up, so
   add files by name.
