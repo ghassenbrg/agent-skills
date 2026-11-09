@@ -9,6 +9,10 @@ Reusable [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-s
 | [`coordinator`](skills/coordinator/SKILL.md) | Coordinates many parallel Claude sessions on one project: registers them, assigns file ownership and number blocks, catches overlaps, sequences releases one at a time, verifies claims against git and CI, and relays your decisions in your words. It doesn't implement. | The Claude desktop app's session tools |
 | [`integrator`](skills/integrator/SKILL.md) | The other half of the coordinator: builds one integration branch, merges the branches the coordinator reports ready (lowest conflict first), resolves docs and generated-file conflicts but never other people's code, runs one suite and release build on the final commit, and pushes and releases only on the coordinator's explicit go. It doesn't talk to the other sessions. | The Claude desktop app's session tools |
 | [`codex-imagegen`](skills/codex-imagegen/SKILL.md) | Generates project image assets (heroes, illustrations, sprites, video stills, …) by delegating to Codex's built-in image generation through `codex exec`, then saves and verifies the PNG. | [Codex CLI](https://github.com/openai/codex), logged in |
+| [`video-director`](skills/video-director/SKILL.md) | Turns a rough video idea (casual or speech-to-text instructions, voice notes, footage, screenshots, sites, previous versions) into a production brief, revises it with you, and starts production only after you approve. | Nothing; production uses whatever video tools are installed (e.g. Remotion, ffmpeg, `codex-imagegen`) |
+| [`orange-ink-editorial`](skills/orange-ink-editorial/SKILL.md) | Creates warm cream, orange, and black brush-and-doodle editorial images using bundled mascot, avatar, and layout references. Separate from the Mr. Snib brand style. | An image generation or editing tool |
+| [`photo-to-ink-mascot`](skills/photo-to-ink-mascot/SKILL.md) | Turns photos into abstract rounded brush mascots, preserving hair, outfits, and poses with a bundled approved cream, black, and orange reference. | An image generation or editing tool |
+| [`photo-to-ink-avatar`](skills/photo-to-ink-avatar/SKILL.md) | Turns photos into expressive human cartoon avatars with bold black ink, a golden brush halo, and orange outline doodles, using a bundled approved reference. | An image generation or editing tool |
 
 ## Install
 
@@ -33,6 +37,7 @@ skills/
   <skill-name>/
     SKILL.md        # frontmatter (name, description) + instructions
     scripts/        # optional helper scripts the instructions call
+    references/     # optional docs the instructions link to, loaded only when needed
 ```
 
 Conventions for new skills:

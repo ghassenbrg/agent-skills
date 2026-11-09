@@ -1,0 +1,4 @@
+interface:
+  display_name: "Photo to Ink Mascot"
+  short_description: "Turn photos into abstract cream and orange mascots"
+  default_prompt: "Use $photo-to-ink-mascot to turn this photo into an abstract brush mascot, preserving the hairstyle, outfit, and pose."

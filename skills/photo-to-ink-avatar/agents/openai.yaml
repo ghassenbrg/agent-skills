@@ -1,0 +1,4 @@
+interface:
+  display_name: "Photo to Ink Avatar"
+  short_description: "Make expressive ink avatars with orange doodles"
+  default_prompt: "Use $photo-to-ink-avatar to turn this photo into an expressive human cartoon portrait with bold ink and orange doodles."
