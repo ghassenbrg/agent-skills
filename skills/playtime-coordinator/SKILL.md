@@ -65,6 +65,15 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
   systemCrashLogs`, copy the newest `Playtime-*.ips` with `device copy from --domain-type systemCrashLogs --source <name>`,
   read the faulting thread (JSON after the first line). 2026-11-13: builds 329-335 trapped at launch in `GameTable.drivers`
   (`Dictionary(uniqueKeysWithValues:)` with duplicate keys after a hand-joined merge); main and build 252 were fine.
+- **When the phone "disappears" for Xcode** (devicectl hangs or says "available (paired)", `xcrun xctrace list devices` shows only
+  the Mac, xcodebuild says "Unable to find a device matching the provided destination specifier" or "Timed out waiting for
+  all destinations", nothing changed on the phone): the Mac's CoreDevice helpers are wedged after a load storm (they had run
+  for 2 days). They are user processes: `kill` CoreDeviceService, the RemotePairing XPC service and the two CoreDevice
+  private apps (see `ps -axo user,pid,etime,comm | grep -E "CoreDeviceService|RemotePairing|CoreDevice.framework"`); launchd
+  restarts them on demand; the phone then shows up in `xctrace` (as Offline until it is ready) and the install goes through.
+  Try this BEFORE asking the founder to replug or restart anything. A pasted "DeviceKit 4002 Live device view" error is the
+  Xcode/Simulator view of a simulator (check the DeviceIdentifier with `xcrun simctl list devices | grep <id>`), not the phone.
+  Run the install as a retry loop (`run.sh` every minute) so it lands when the device returns.
 - A lower build number than the phone's installs fine on a development phone ("Its games stay"). Debug builds show the studio
   games by default; Release hides the studio games, Palace and the unfinished new games, and shows the Online card.
 
