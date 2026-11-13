@@ -91,3 +91,59 @@ Then read the sheet. It shows each image on magenta, dark and white, plus its bo
 4. **Wire it in and report.** Reference the image from the code that uses it (meaningful `alt` text on the web, `staticFile()` in Remotion). Tell the user each saved path and what it's for.
 
 Save images where the project already keeps them, for example `public/` for web and Remotion projects or the engine's asset folder for games. If there's no such place, use `./assets/`. Use descriptive kebab-case names such as `hero-ojja.png`.
+
+## Lessons from game art (clay-style sets with references)
+
+**Passing references**
+- Give every `--ref` an absolute path (`"$PWD/art/x.png"`). Relative paths fail when several jobs run in parallel ("unable to read referenced image").
+- In zsh, put several refs in an array (`REFS=(--ref "$a" --ref "$b")`, then `"${REFS[@]}"`), never in one string variable: zsh doesn't split it, and the script rejects it as one unknown option.
+- Name the references by order in the brief: "Keep the game's real pieces from the FIRST reference exactly; render them in the style of the other references (…)".
+
+**A brief that held up, in this order**
+1. What it is and where it goes ("Tic-tac-toe game picture for a home tile").
+2. What to keep exactly from which reference: pieces, digits and colours ("never a 3", "same faces").
+3. Style, from the other references: material, camera ("three-quarter view a little above"), light ("soft daylight from the upper left").
+4. What to avoid: no glow, no sparkles, no motion lines, no text, no outlines.
+5. The transparency sentence, then size and fill ("subject about 80% wide, bold silhouette that reads at 90 px").
+
+**Sets and variants**
+- Generate the base image first, then each variant with the base as the first ref: "keep EVERYTHING identical, changing only …". Four mode screens of one game stayed consistent this way.
+- A result that fills too little of the frame (two far-apart houses) gets one more run with "close enough to fill the frame", not a crop.
+
+**After a rejection**
+- Drop every motif you chose yourself and go back to the brief: list which ideas came from the user and which from you.
+- Show 3–4 directions that truly differ, in metaphor or in style.
+- Repeating your own motif (X and O pieces three rounds running) cost a whole round of trust.
+
+**Judge in context**
+- Show a candidate where it will live, beside real neighbours: a new tile in a row of today's tiles, a before/after strip.
+- "Nice but not ours" was only visible that way: a new style must sit with the existing set.
+
+**Before accepting an image**
+- Look at the subject: hands and paws (a cat's paw drawn with the player's knitted cuff was wrong), faces, counts and digits, every word in a mockup.
+- Run `check_transparent.py --sheet` and read it on magenta, dark and white. A bad edge shows as a dark rim or faint haze on a dark page.
+- Look at it on both themes and at the size it's shown.
+
+**Edges and cleaning**
+- Clean only loose specks, with `check_transparent.py --clean`. Never erode or rebuild the subject's edge (that trims it).
+- A patch stuck to the subject means generate again.
+- One invisible corner pixel (alpha ≤ 2) failing the corner check may be zeroed before `--clean`.
+- `--clean` removes small separate parts, so a dotted path or loose sparkles vanish. Compare the parts count before and after, or ask for solid shapes ("one continuous ribbon, not dots").
+
+**Matching a reference's colours**
+- Sample averaged patches with PIL (`crop(box)`, mean RGB), never single pixels.
+- Write the colours into tokens.
+- Check text pairs with WCAG contrast (4.5:1).
+- To call two colours "the same", compute CIE76 ΔE in Lab and accept below about 3.
+
+**Masters and composition**
+- Keep the cleaned master PNG of every piece in one folder, and build tiles and icons from it with a script, never by hand. This keeps the set rebuildable and the colours consistent.
+- Store the masters where the build script looks for them, and record the source and brief in the project's provenance file.
+
+**Do not**
+- Chroma-key or rembg a background away.
+- Rebuild edges.
+- Let a tile background search push a pale piece onto a loud colour: set that one by eye.
+- Ship text inside an image.
+- Accept an image you haven't looked at, at its real size.
+
