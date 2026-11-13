@@ -295,6 +295,15 @@ The phone branch is not your gate. When the project keeps a disposable branch fo
 
 ## Hazards
 
+- **One script, one lock, kill by pid.** A long test script that is restarted whenever the target commit changes can leave
+  copies alive: a `pkill` by pattern missed seven of them (they ran as `./x.sh`, the pattern said `scripts/x.sh`), all woke up
+  at once, and each created its own simulators and queued builds in one worktree (4 booted simulators, 7 of each kind,
+  disk down to 11 GB, no result for hours). Take a single-instance lock (`mkdir` lock or pid file), stop old copies by the
+  pid from the lock and `ps`, check `ps` before every restart, let the script itself delete its simulators and build folder
+  at the end, keep at most two simulators booted at once (one for UI, two only during a pair), wait for the free-disk
+  floor (15 GB) at every phase start, and keep a quiet window when the coordinator needs the machine (a phone build).
+  A "SpringBoard crashed" or "system shell crashed" failure is no result: rerun once on an erased, re-booted simulator.
+
 - A stale shared checkout: start from the remote ref, never from a local default branch that may be behind.
 - Don't `git stash pop` (the stash is shared by every worktree), don't remove a worktree you didn't create, don't kill
   processes by name pattern (use a pid file), don't `git add -A`, and keep your own test apps and builds inside your own

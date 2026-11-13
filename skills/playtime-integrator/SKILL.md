@@ -36,6 +36,18 @@ yes relayed through the coordinator. You do not talk to the other sessions: you 
   is reported by name. Sweeps on iPhone SE, iPad and Pro Max (ScreenSweepTests), two-phone pair tests, SE end cards, RTL/Arabic pass.
 - One chain (U = UI, P = pairs) at a time; report one message per chain.
 
+## Lessons of the first overnight (2026-11-13/14)
+
+- One Debug-phase script, one lock; stop old copies by pid, never by pattern; delete your own simulators at the end of the
+  script (a restart bug left 7 copies and 4 booted `IG-R` at 05:06); at most 2 simulators booted at once; 15 GB free at every
+  phase start; no new boots or builds during the coordinator's phone-build window (Playtime: 07:05-07:40).
+- Pair tests advertise `<tag> Test Ana/Sam/Kana` (`TEST_RUNNER_PT_TEST_SUFFIX=IG`): two sessions' pairs on one Mac collide over
+  Bonjour. `ScreenSweepTests` splits with `TEST_RUNNER_SWEEP_LANGS` / `TEST_RUNNER_SWEEP_LOOKS`: a 32-minute sweep died with a
+  SpringBoard crash; run 12 small slices (SE / iPad / Pro Max x en/ar x light/dark, ~8 min each).
+- Take the LATEST main when a phase starts and name the commit in every report; main moved six times in one night.
+- Read-only independent review of the riskiest diff (relay, matchmaking) found real items the owner missed (seat header, all-bad
+  trusted proxies): schedule one while the machine is busy.
+
 ## Reporting to the coordinator
 
 One message per chain: the tip (commit, never a branch), what ran by name with counts and times, what failed and whether it is
