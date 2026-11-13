@@ -60,6 +60,11 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
 - Install only from `~/git/playtime-install` with `./scripts/run.sh -d <UDID> --debug --no-launch`. **Silent**: never launch,
   relaunch or terminate; never install over an open app (check `devicectl device info processes` first; wait up to 30 minutes
   and tell the founder). Verify the build with `devicectl device info apps` and say "installed silently, not opened".
+- **Launch smoke before every install, crash logs after.** Run the Debug build on a simulator ~10 s and check for a crash log
+  first. When the founder says it does not open: `xcrun devicectl device info files --device <UDID> --domain-type
+  systemCrashLogs`, copy the newest `Playtime-*.ips` with `device copy from --domain-type systemCrashLogs --source <name>`,
+  read the faulting thread (JSON after the first line). 2026-11-13: builds 329-335 trapped at launch in `GameTable.drivers`
+  (`Dictionary(uniqueKeysWithValues:)` with duplicate keys after a hand-joined merge); main and build 252 were fine.
 - A lower build number than the phone's installs fine on a development phone ("Its games stay"). Debug builds show the studio
   games by default; Release hides the studio games, Palace and the unfinished new games, and shows the Online card.
 

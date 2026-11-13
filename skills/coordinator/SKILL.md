@@ -359,6 +359,11 @@ Reply with your branch, your files and your plan.
   lesson: the user asked "maybe a lot is already finished on other branches and we never got it"). Label every install with
   the branches IN (tips), the branches OUT with the reason, the build number, and a one-line "try this first" per notable
   thing, so the user's hands-on test is quick.
+  **Launch-check every phone build before it goes on the phone** (an install report is not proof the app opens): a merge of
+  hand-joined lists once duplicated dictionary keys, the app trapped at launch, and three installs in a row did not open.
+  Launch the Debug build on a simulator for ~10 seconds and confirm no new crash log, and after the install read the phone's
+  crash logs (`xcrun devicectl device info files --domain-type systemCrashLogs`, copy the newest `<App>-*.ips`) instead of asking
+  the user what happened. A hand-merged shared list (catalog, drivers, wire, sounds) gets a test that builds it.
 - **Name the commit, not the branch,** in every go and merge: a branch moved under a candidate once.
 
 ## Hazards seen
