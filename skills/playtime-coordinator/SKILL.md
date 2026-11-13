@@ -91,6 +91,19 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
   summaries short with percentages when he asks for status. Findings from his testing become rules audited across the whole app.
 - Allowance: the weekly limit may stop sessions; resume them when he says it has reset.
 
+## Away mode on Playtime
+
+Follow the global coordinator's "Away mode". Playtime specifics: the founder says it in his own words ("keep working by
+yourself, never block on me, decide with your team"); it applies whenever he can't watch (asleep, at the office while the Mac
+works at home). Decisions made for him get a D number or a design rule (check the next free ones on every branch first) and
+go on the one decisions page under "decided while you were away". Still his alone: relay deploys and any
+ghassen-io-infra change, releases and tags, store/TestFlight builds, Apple/Google accounts and credentials, force pushes,
+and changing an approved screen below its approved image (rule 102). Phones: build from `phone-preview` with the scan and
+launch smoke, install silently with `scripts/run.sh --no-launch`, the founder's iPhone may be locked or off Wi-Fi at night (Xcode then
+can't see it): leave a retry loop running (every minute, up to 40 minutes, repeated), and read the build from the phone.
+Kana's phone only when idle. Morning: one page with the return summary, installs (build numbers, IN/OUT, try-first), the
+decisions made, what waits for his yes (relay deploy question first) and the machine notes.
+
 ## Hazards seen on this project
 
 - A command meant for a worktree run in the shared checkout wiped uncommitted edits once: `git -C <absolute path>`, check

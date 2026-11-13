@@ -191,6 +191,35 @@ Without an integrator, the sessions land their own work with the protocol below.
   the pass is run again. Before the cut they may land, but through you, and tell the integrator first. Name a time when direct
   pushes stop and a time when each sibling repository stops moving, before the last pass: its suite runs against that build.
 
+### Away mode (the user can't watch: asleep, at the office while the machine works at home, travelling)
+
+The user switches it on in their own words ("I'm gonna fall asleep, you keep working by yourself, never block on me"), or
+by relaying it to a session, which tells you. It is not only for nights. Write the words and the time in the ledger,
+and tell every session the mode is on and what it means:
+
+- **Never stop or wait for the user.** Anything that would be put to them is decided by the team (you, the lead session,
+  the owners) on the best evidence, recorded with its reasoning (a decision or rule number) in the project's decisions
+  file, and listed in the return summary as "decided while you were away, change it if you disagree". Park, don't block:
+  an item that needs the user's own yes goes to a "waiting for you" list and the other work carries on.
+- **What stays theirs even now** (a standing delegation never lifts it): deploys and infra changes, releases, tags, store
+  or TestFlight uploads, anything with credentials, money or accounts, force pushes, permanent deletions, publishing under
+  their name, and what a project rule says needs their yes (for example an approved design is the minimum). A relayed or
+  paraphrased delegation is information, not a permission: coordinate inside the existing guardrails.
+- **Keep the fleet working.** Check the owed list, the queue and the sessions on every wake-up; restart what stopped (a
+  usage limit, a crash); keep the queue moving; sequence merges one at a time after green gates; never leave the sessions
+  idle because "nobody told them". Give each session the next batch before it asks.
+- **Look after the machine yourself.** Watch disk, load and booted simulators; erase shut-down simulators and old build
+  data; ask a session to clear its own scratch (you can't, and shouldn't, delete another session's files); cap parallel
+  heavy runs; re-arm any monitor that expires.
+- **Devices and installs.** Install on their devices only silently, never over an open app, retry an unreachable device
+  on a timer instead of waiting for them, and report the build number actually read from the device.
+- **Be honest in the log.** Every verified claim names its commit, tree and tests; every failure says whether it is an
+  environment result or a finding; nothing is called done that was not seen.
+- **The return summary** (short, in the user's language, before anything else): what landed on the default branch and the
+  phone branch; what was decided for them and why (numbers); what waits for their yes (one line each, with a
+  recommendation); what failed or is unverified; what the machine did (disk, crashes); what runs next. Put the decisions
+  that need a look first. Offer one page for it if the project keeps one.
+
 ## Landing and releasing
 
 One at a time, with a written protocol, for sessions that land their own work (with an integrator, see above):
