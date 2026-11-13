@@ -263,6 +263,32 @@ Not verified: ...   Follow-ups owed to sessions: ...
 A result is a claim until you looked at it, yours included. When something you told the coordinator turns out wrong, say so
 as soon as you know: what you said, what's true, what it changes. It may have passed it on.
 
+## Rolling post-merge gate (when the user says "merge to main, it isn't production")
+
+The pre-merge gate becomes two tiers that never block a merge. The strict full gate returns only before a release or store build.
+
+- **Quick tier on every new tip, about 15 minutes,** in your own detached worktree: the package tests by name against the
+  last list (none missing, say what is new), strings check and lint, the release-hidden check, and the Android release build
+  and core tests (every second tip is enough). Report one short message: pass or fail by name, what is red with a one-line cause
+  guess, load and disk during the run.
+- **Full tier after a few merges or on request:** the full UI suite by name against the baseline pass and skip lists (explain
+  every change: removed or renamed tests), the screenshot sweep on the small phone, the large phone and the iPad, the two-phone
+  pairs for the games that changed, and the small-phone end cards.
+- **Carry results forward only when the diff proves it:** `git diff <old> <new> --stat` must show no files in the carried area; say
+  in the report what ran and what was carried.
+- **Read counts from the result bundle** (`xcrun xcresulttool get test-results summary --path <bundle>`) and diff pass lists
+  by name instead of trusting a summary line.
+- **A style change that touches every screen needs a committed sweep and a contrast test** (every screen, light and dark,
+  both reading directions, clipped-text checks). A regression where a score bar dropped both names was found only because a test
+  failed by luck.
+- **Pair tests flake under load.** Rerun on a quiet machine, write the load next to the result, and never explain a failure away.
+  The release-hidden check reads its expectation from an environment variable with the runner's prefix: passing it as an
+  argument fails for the wrong reason.
+- **Use the shared queue** (submit, keep reading diffs, preparing pair scripts and checking shared-file conflicts between open
+  branches while it waits). Clean your simulators and build folders after each tier. Never use the copy a session installs from.
+- **A Linux image build is proved on a CI runner,** not guessed from a Mac build (a Dockerfile that built fine on the Mac
+  failed on Linux for a missing folder and an old compiler image).
+
 ## Hazards
 
 - A stale shared checkout: start from the remote ref, never from a local default branch that may be behind.

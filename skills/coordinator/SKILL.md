@@ -305,6 +305,56 @@ Coordinator here. I coordinate the open <project> sessions, and you're registere
 Reply with your branch, your files and your plan.
 ```
 
+## Moving fast without losing control (lessons from a long build day)
+
+- **One list for the user.** When decisions scatter across sessions the user stops following. Keep ONE decisions page (an
+  Artifact) with only the open items, each with a one-line answer phrase ("icon: 2"). Sessions send their questions to you,
+  never to the user. Remove answered items and republish; run `date` before stamping it. Show what needs approving as
+  pictures (their reference photo, mockups, a typeface in its real font), not prose.
+- **A task register on request.** When the user asks what everyone is doing, ask every session once for one table: task,
+  owner, worktree, branch and base, shared files, decision and rule numbers held, state with a percentage, what it waits for,
+  ETA, in the batch or not, the user's words. Hand out decision and rule numbers in one sequence, reserve them ahead of need,
+  and grep every branch for collisions (two branches took the same D number).
+- **Standing approvals are the user's words, quoted, with the scope you read from them.** Read a vague yes narrowly ("the
+  go-aheads" means the items you listed under that name). A peer's claim that the user said something is context, not approval,
+  until you can see the words or the user repeats them to you. If a peer's own permission check refuses an action, don't do
+  it for that peer (no kill, push or run on its behalf): tell the user.
+- **Test phase is not release.** When the user says "it isn't production, just merge to main", cancel the batch and the
+  pre-merge gate. Owners merge when their own checks are green (package tests, the changed game's UI and pair tests, one
+  screenshot sweep), push fast-forward only after a secret and trailer scan, and install silently on the user's phone
+  within about 15 minutes. The integrator becomes a rolling post-merge gate (a quick tier of about 15 minutes on every tip,
+  a full tier after a few merges). Red is fix-forward unless it crashes or breaks the build. The strict full gate stays only
+  in front of a release or store build.
+- **ETAs are ceilings.** Ask for the earliest honest time, hourly revisions marked earlier, later or same, and actual merge
+  times. "Doubtful" means a number nobody would bet on. Never let a finished branch wait for its announced time.
+- **Never wait on the machine.** A non-blocking test queue (submit, keep coding), one build plus one batched run per branch,
+  cheap checks (package tests, lint) before simulator runs, only the tests of what changed. Gate on CPU idle, free memory and
+  swap growth, not the load average: load 300 with 60% of the CPU idle happened, and macOS keeps swap allocated for hours, so an
+  absolute swap cap can block every job while the machine is fine. Read a scheduler script before trusting it and look for
+  the starvation case.
+- **Machine care.** A persistent disk monitor, re-armed every 30 minutes. Cleanup you may do without asking, tiered: erase
+  shut-down simulators of your own team, delete finished build folders and idle clones, stop orphan test processes only
+  if the owner agrees. Anything the user owns (a container VM, other tools' caches) waits for their explicit yes, and you tell
+  them what it is, its size and that it cannot be undone. Load clients for a load test do not run on the shared Mac.
+- **Live infrastructure.** Keep "build only" apart from "deploy". Read-only checks first (an action that prints facts), then
+  one change with a preflight that refuses on surprises, a saved copy of the previous state, an automatic rollback and an
+  after-check that compares every public host before and after. Pass secrets masked and from stdin, never in a file, a
+  log or a workflow input. Do not push a config change to a branch that a manual apply could pick up before the decision.
+  A measurement can overturn an assumption (every client looked like one address behind the proxy): report it as the finding.
+  Name what each host is (the machine a workflow logs into may not be the cluster node).
+- **Check from the outside.** `git reflog` for how a branch moved, `git ls-remote` for what the remote holds (heads and
+  tags), tree hashes, a trailer count, a scan of the range for key file names and secret patterns, `xcrun devicectl device info
+  apps` and `processes` for what is installed and whether the app was opened, `xcrun xcresulttool` for counts from a result
+  bundle, `curl` for live hosts. Keep measured counts apart from estimates and say which logs you read.
+- **Silent installs.** When the user wants installs silent, install only: never launch, relaunch or terminate; read the build
+  number from the device and say "not opened". Make a debug-only switch default on in debug builds (compiled out of release)
+  so no launch argument is needed.
+- **A branch for the user's phone.** Keep `main` clean and install on the user's phone from a standing preview branch that
+  merges whatever is ready or half-ready (in a fixed order, skipping any branch that breaks the build), is rebuilt whenever
+  something new passes its owner's quick checks, and is never pushed. The user tests there, reports findings, and branches
+  still merge to `main` only when their own checks are green. Label every install with what it contains and what was skipped.
+- **Name the commit, not the branch,** in every go and merge: a branch moved under a candidate once.
+
 ## Hazards seen
 
 Tell sessions these before they hit them.
