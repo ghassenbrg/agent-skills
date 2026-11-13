@@ -289,6 +289,10 @@ The pre-merge gate becomes two tiers that never block a merge. The strict full g
 - **A Linux image build is proved on a CI runner,** not guessed from a Mac build (a Dockerfile that built fine on the Mac
   failed on Linux for a missing folder and an old compiler image).
 
+The phone branch is not your gate. When the project keeps a disposable branch for the user's phone (the coordinator's
+"phone branch"), you do not test or release from it and a red result there never blocks `main`; your rolling gate runs on
+`main` tips only. If you are asked to build a phone install, build it from that branch, label it, and say it was not gated.
+
 ## Hazards
 
 - A stale shared checkout: start from the remote ref, never from a local default branch that may be behind.

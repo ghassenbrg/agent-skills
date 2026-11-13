@@ -349,10 +349,16 @@ Reply with your branch, your files and your plan.
 - **Silent installs.** When the user wants installs silent, install only: never launch, relaunch or terminate; read the build
   number from the device and say "not opened". Make a debug-only switch default on in debug builds (compiled out of release)
   so no launch argument is needed.
-- **A branch for the user's phone.** Keep `main` clean and install on the user's phone from a standing preview branch that
-  merges whatever is ready or half-ready (in a fixed order, skipping any branch that breaks the build), is rebuilt whenever
-  something new passes its owner's quick checks, and is never pushed. The user tests there, reports findings, and branches
-  still merge to `main` only when their own checks are green. Label every install with what it contains and what was skipped.
+- **A branch for the user's phone: always install from it, never from plain `main`.** Give it a meaningful name
+  (`phone-preview`). `main` holds verified, stable work only; the phone branch holds everything the user may want to try
+  next, finished or not: it merges every branch that builds, in a fixed order, skipping (and listing) any that breaks the
+  build or conflicts hard. It is disposable: when it gets dirty or conflicts pile up, delete it and rebuild it from `main`
+  by merging everything again. Rebuild it whenever a new branch is ready enough to try, and before every install. It is
+  never pushed or tagged and nobody works on it. The user tests there and reports findings; a branch still reaches `main`
+  only when its own checks are green. Installing plain `main` hides finished work that has not merged yet (a night's
+  lesson: the user asked "maybe a lot is already finished on other branches and we never got it"). Label every install with
+  the branches IN (tips), the branches OUT with the reason, the build number, and a one-line "try this first" per notable
+  thing, so the user's hands-on test is quick.
 - **Name the commit, not the branch,** in every go and merge: a branch moved under a candidate once.
 
 ## Hazards seen
