@@ -1,6 +1,6 @@
 ---
 name: playtime-coordinator
-description: Coordinate the parallel Claude sessions working on Playtime (the family games app, ~/git/playtime) - its repositories and worktrees, the main vs phone-preview branch model, the merge protocol (owners ff-merge to main, rolling post-merge gate), the test queue, how builds are installed silently on the founder's phones, the online relay and ghassen-io-infra, Android parity, number blocks (D and design rules), the single decisions page for the founder, approval scoping, and lessons from past incidents. Use together with the global `coordinator` skill (load it first) whenever the founder asks for a coordinator on Playtime, to line up Playtime merges, installs or deploys, or to register a new Playtime session. Not for the feature work itself (create-playtime-game in the repo).
+description: Coordinate the parallel Claude sessions working on Playtime (the family games app, ~/git/playtime) - its repositories and worktrees, the main vs phone-preview branch model, the merge protocol (D92: only the landing role moves main, make check proof, git hooks and guard ON, rolling post-merge gate), the test queue, how builds are installed silently on the founder's phones, the online relay and ghassen-io-infra, Android parity, number blocks (D and design rules), the single decisions page for the founder, approval scoping, and lessons from past incidents. Use together with the global `coordinator` skill (load it first) whenever the founder asks for a coordinator on Playtime, to line up Playtime merges, installs or deploys, or to register a new Playtime session. Not for the feature work itself (create-playtime-game in the repo).
 ---
 
 # Playtime coordinator
@@ -28,8 +28,15 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
 
 ## Two branch models: main and phone-preview
 
-- `main` = verified and stable work only. Owners merge their own work with a fast-forward (`git fetch . <tip>:main`, no
-  checkout switch) and `git push origin main` (ff-only, only main) after a secret scan and a trailer scan. No force push, no tags.
+- `main` = verified and stable work only. **Since D92 (2026-11-15) only the landing role moves main** (a strong-model lead or
+  the founder): rebase onto current main, `make check` on that exact tree (writes a proof), then push (ff-only, only main). Other
+  agents commit on their own branch, never push, send MERGE-READY with the proof. `scripts/land.sh` does not exist yet: by hand.
+  **Git hooks are ON** (`core.hooksPath` -> `~/git/playtime/scripts/githooks`: commit-msg refuses Co-Authored-By and AI credit
+  lines, pre-commit runs the cheap lints, pre-push allows only a fast-forward of main whose exact tree has a passing proof).
+  `~/git/playtime` must stay checked out on `main` and clean: never switch it (the hooks follow its files). The **repo guard**
+  (`.claude/settings.json`, `.codex/hooks.json` -> `scripts/agent-guard.sh`) blocks force/tag pushes, `--no-verify`, `run.sh -d`,
+  device launch/terminate, simulator freezing, writes to `docs/approved` and `sandbox/`, keystore/infra names, for sessions
+  started in a Playtime folder (not for sessions started from the sidefolk folder). No force push, no tags.
 - `phone-preview` = the disposable branch for the founder's phone: everything that builds, finished or not, merged in a fixed
   order from current `main`; rebuilt from scratch whenever it gets messy and after every new ready branch; never pushed.
   **Every phone install comes from it, never from plain `main`** (the founder: finished work on other branches never reached
@@ -37,9 +44,10 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
 
 ## Merge protocol and the rolling gate
 
-- You verify every announced merge: `git reflog` for how main moved, `git ls-remote --heads --tags origin`, tree hashes, trailer
-  counts (no Co-Authored-By anywhere), a scan of the range for key file names and secret patterns. Then tell the integrator the
-  new tip (commit, never a branch name).
+- You verify every announced landing: `git fetch`, tip and tree, `merge-base --is-ancestor` from the previous main, the file
+  list (code dirs touched?), trailer count 0, origin/main equal; run the quick scripts yourself in a temp worktree when scripts
+  changed. A landing claims `make check` on its tree: ask for it, never run the 20-minute check yourself unless asked. Then tell
+  the integrator the new tip (commit, never a branch name).
 - The integrator runs the rolling post-merge gate (see `playtime-integrator`): a quick tier on main tips and a full tier on
   alternate ones. A red result goes to the owner of the tip; it blocks nothing else unless a fix is promised.
 - Owners test their own branch first, name the tests (not "green"), and say what they did not verify.
@@ -57,9 +65,13 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
 
 - Phones: the founder's iPhone 15 Pro Max (its UDID is in scripts/install-preview.conf) and Kana's iPhone 16e
   (UDID in scripts/install-preview.conf, often unavailable until unlocked on the same Wi-Fi). Check with `xcrun devicectl list devices`.
-- Install only from `~/git/playtime-install` with `./scripts/run.sh -d <UDID> --debug --no-launch`. **Silent**: never launch,
-  relaunch or terminate; never install over an open app (check `devicectl device info processes` first; wait up to 30 minutes
-  and tell the founder). Verify the build with `devicectl device info apps` and say "installed silently, not opened".
+- **Installs are the coordinator role's only** (D92) and go through `scripts/install-preview.sh` in `~/git/playtime-install`
+  (never `run.sh -d`). Order: merge current `main` into `phone-preview` there (disposable, never pushed), `make smoke`
+  (`PLAYTIME_HEAVY_DIR=<heavy-slots>`, ~5 min, writes `build/proof/smoke-<tree>.json`), `install-preview.sh --dry-run --tip <commit>
+  [iphone|ipad|kana]`, then the real run. It always passes `--no-launch`, refuses a dirty tree or missing proof; the iPhone
+  installs over an open app (his word), the iPad waits (`--wait N`), Kana's needs `--allow-refused` AND the founder's word AND
+  Playtime closed (check `devicectl device info processes` yourself). Device ids live only in `scripts/install-preview.conf`.
+  Verify with `devicectl device info apps` and say "installed silently, not opened". Same app code = no need to reinstall.
 - **Launch smoke before every install, crash logs after.** Run the Debug build on a simulator ~10 s and check for a crash log
   first. When the founder says it does not open: `xcrun devicectl device info files --device <UDID> --domain-type
   systemCrashLogs`, copy the newest `Playtime-*.ips` with `device copy from --domain-type systemCrashLogs --source <name>`,
@@ -122,3 +134,14 @@ decisions made, what waits for his yes (relay deploy question first) and the mac
 - A test that depends on a random deal flaked once; fix the test or the seed, do not hide it.
 - I installed plain `main` when the founder wanted the phone branch: always use `phone-preview`.
 - Wrong clock times in the ledger: always run `date` before stamping.
+
+## Skill upkeep (the founder: sessions always update the skills)
+
+- Before you say done at any milestone, night or handover, update the skill that owns the lesson: this one, `playtime-integrator`,
+  the global `coordinator`/`integrator`, and for game work the repo's `create-playtime-game` (SKILL.md + LESSONS.md, landed through
+  the landing role). Write rules, hazards and numbers that cost time, tokens or a founder correction (date + incident, 1-2 lines);
+  fix or delete stale lines instead of only adding. Commit global skills locally in `~/git/agent-skills` (no trailers); push only on
+  the founder's "push skills".
+- Every brief you send ends with: "Before you finish, update your skill with what you learned and tell me in one line what you
+  added." Ask for that line in each completion report; log it in the ledger.
+- Last updated 2026-11-15: D92 rails (landing role, hooks, guard, install-preview), numbers: D94 taken, rules to 137.

@@ -448,3 +448,17 @@ check saw it do nothing, because the code path is live; and a hint on screen tha
 
 A fix that hasn't been measured ships labelled as unproven, if it ships at all. If it turns out not to work, correct
 the notes and tell the user before they go looking.
+
+## Skill upkeep (every session, every milestone)
+
+The skills are the team's memory, and the founder wants them kept current without being asked.
+
+- Before you report a milestone, a night or a handover, update the skill that owns the lesson: global ones in
+  `~/git/agent-skills/skills/<name>/SKILL.md` (this one, `integrator`, the project's coordinator and integrator skills), and
+  the project's own skills in its repository (for Playtime `create-playtime-game`, its LESSONS.md, landed like any file).
+- Write rules, hazards, numbers and commands that cost time or tokens or earned a correction: date, incident, 1-2 lines. Fix or
+  delete lines that went stale; do not only add. Keep a skill short: detail past one screen goes to a references file.
+- Commit global skills locally (no co-author trailer); never push without the founder's "push skills".
+- End every brief to a session with: "Before you finish, update your skill with what you learned and tell me in one line what you
+  added." Ask for that line in each completion report and record it in the ledger.
+- At each wrap-up ask once: did this session change how the next one should work? If yes, the skill is updated before "done".

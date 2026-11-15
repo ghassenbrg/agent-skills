@@ -315,3 +315,20 @@ The phone branch is not your gate. When the project keeps a disposable branch fo
   Use `git -C <absolute path>` for every repository command and absolute paths otherwise; scripts under `/bin/bash` with
   `set -euo pipefail`; `git -C <path> rev-parse --show-toplevel` checked before anything destructive. In zsh, `$C:refs/heads/main` reads `:r` as a modifier, so write `"${C}:refs/…"`.
 - A check that needs real clicks or keys waits for a slot from the coordinator: one session on the screen at a time.
+
+## Token economy and skill upkeep (the founder reads reports rarely)
+
+- **Reports are short.** At most 12 lines per message: the commit, PASS/FAIL, counts by name, what failed (first failing line),
+  the log path, what is not verified. No narrative, no list of passing tests, no repeated background. One message per chain or
+  ask; none for "started" or "still running": silence is fine, the coordinator can read the logs.
+- **Scripts do the work.** One script per phase writing to files; read them with `tail`/`grep` for counts and failures; never
+  paste a whole log or result bundle into your context; never re-read the skill or a file you already read this session.
+- **Only what was asked.** Run the gates the coordinator named. Propose extra sweeps, pairs or reviews in one line; do not run
+  them unasked. A proof that already exists for that exact tree is read, not rerun.
+- **Wait cheaply.** One background command and one completion notice; no polling loops that wake you, no wakeups under 20
+  minutes. Park when done: no monitors, no running simulators.
+- **Right-size help.** Read-only reading and log triage go to a cheaper model or a short subagent; keep the strong model for the
+  riskiest diff's review. Look at the weekly usage once at the start; at 90% tell the coordinator and park.
+- **Skill upkeep.** Before you park, put what you learned in this skill or the project's integrator skill (1-2 lines, dated,
+  fix stale lines), commit locally in `~/git/agent-skills` (no trailers, no push without "push skills"), and end the report with
+  "skill updated: <what>".

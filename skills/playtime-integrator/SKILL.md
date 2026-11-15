@@ -6,8 +6,8 @@ description: Playtime facts for the integrator session - the rolling post-merge 
 # Playtime integrator
 
 The Playtime facts for the integrator. The role, merge train and reporting are in the global `integrator` skill; load it first.
-Playtime does not do snapshot releases from here: owners fast-forward `main` themselves and you run a **rolling post-merge
-gate** on the tips the coordinator gives you. No tag, release, store upload, deploy or push of yours without the founder's
+Playtime does not do snapshot releases from here. Since D92 only the landing role pushes `main` (after `make check` on the exact
+tree; git hooks ON); you run a **rolling post-merge gate** on the tips the coordinator gives you and never push. No tag, release, store upload, deploy or push of yours without the founder's
 yes relayed through the coordinator. You do not talk to the other sessions: you report to the coordinator.
 
 ## Where you work
@@ -53,3 +53,11 @@ yes relayed through the coordinator. You do not talk to the other sessions: you 
 One message per chain: the tip (commit, never a branch), what ran by name with counts and times, what failed and whether it is
 new against the baseline, the logs' path, and what you did not verify. A red result: reproduce once, then name the owner and
 the first failing line. Never fix someone else's code. The founder's hands-on testing is never a gate.
+
+## Token economy and skill upkeep (the founder reads reports rarely)
+
+- Follow "Token economy" in the global `integrator` skill: reports of at most 12 lines, one per chain, no progress messages, no
+  polling, logs read with tail/grep, only the gates the coordinator named. `make check` / `make smoke` proofs already exist per
+  tree (`build/proof/`, `.git/playtime-proof/`): read them instead of rerunning.
+- Before you park, update this skill (or the global one) with what you learned, one or two lines, and end your report with
+  "skill updated: <what>".
