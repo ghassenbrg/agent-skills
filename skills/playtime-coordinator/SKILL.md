@@ -69,8 +69,10 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
   (never `run.sh -d`). Order: merge current `main` into `phone-preview` there (disposable, never pushed), `make smoke`
   (`PLAYTIME_HEAVY_DIR=<heavy-slots>`, ~5 min, writes `build/proof/smoke-<tree>.json`), `install-preview.sh --dry-run --tip <commit>
   [iphone|ipad|kana]`, then the real run. It always passes `--no-launch`, refuses a dirty tree or missing proof; the iPhone
-  installs over an open app (his word), the iPad waits (`--wait N`), Kana's needs `--allow-refused` AND the founder's word AND
-  Playtime closed (check `devicectl device info processes` yourself). Device ids live only in `scripts/install-preview.conf`.
+  installs over an open app (his word); **2026-11-15 18:05 the founder said "Even Kana's phone and iPad can install if they are
+  open. It's fine."**, so installing over an open Playtime is allowed on all three once `scripts/install-preview.conf` says
+  `open-ok` for them (until that lands the script still waits: `--wait N`); Kana's still needs `--allow-refused` AND the
+  founder's word for each install. Device ids live only in `scripts/install-preview.conf`.
   Verify with `devicectl device info apps` and say "installed silently, not opened". Same app code = no need to reinstall.
 - **Launch smoke before every install, crash logs after.** Run the Debug build on a simulator ~10 s and check for a crash log
   first. When the founder says it does not open: `xcrun devicectl device info files --device <UDID> --domain-type
@@ -144,4 +146,4 @@ decisions made, what waits for his yes (relay deploy question first) and the mac
   the founder's "push skills".
 - Every brief you send ends with: "Before you finish, update your skill with what you learned and tell me in one line what you
   added." Ask for that line in each completion report; log it in the ledger.
-- Last updated 2026-11-15: D92 rails (landing role, hooks, guard, install-preview), numbers: D94 taken, rules to 137.
+- Last updated 2026-11-15: D92 rails (landing role, hooks, guard, install-preview); installs over an open app allowed on all three devices; numbers: D97 taken, rules to 139.
