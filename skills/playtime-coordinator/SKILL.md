@@ -129,6 +129,10 @@ decisions made, what waits for his yes (relay deploy question first) and the mac
 
 ## Hazards seen on this project
 
+- Background wait-loops pile up: 2026-11-15 the founder noticed 96 orphan `until [ -f X.done ]; do sleep 20; done` shell loops (up to 4
+  days old, waiting on result files that never came) from the main Playtime session. Rule: every wait has a timeout
+  (`for i in $(seq 1 N)`), prefer ONE background command with a completion notice, never poll; before wrap-up list and `TaskStop`
+  your background tasks; the coordinator checks `pgrep -x sleep` after big batches.
 - A command meant for a worktree run in the shared checkout wiped uncommitted edits once: `git -C <absolute path>`, check
   `rev-parse --show-toplevel` first, never reset from a `cd`.
 - A swap-size cap in the queue blocked all jobs for 30 minutes while the machine was idle: read the queue log (`ADMIT/WAIT`).
