@@ -63,6 +63,8 @@ tips and counts are examples to check live (git, `devicectl`, `ls-remote`).
 
 ## Phones and installs
 
+- Device ids and names are never in this public repo. On this Mac they are in `local.md` beside this file (git-ignored,
+  never pushed) and in the Playtime repo's `scripts/install-preview.conf`, which the installer reads.
 - Phones: the founder's iPhone 15 Pro Max (its UDID is in scripts/install-preview.conf) and Kana's iPhone 16e
   (UDID in scripts/install-preview.conf, often unavailable until unlocked on the same Wi-Fi). Check with `xcrun devicectl list devices`.
 - **Installs are the coordinator role's only** (D92) and go through `scripts/install-preview.sh` in `~/git/playtime-install`

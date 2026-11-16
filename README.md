@@ -42,6 +42,8 @@ skills/
 ```
 
 Conventions for new skills:
+- Nothing machine-specific or private in this public repo (device ids, hostnames, emails, keys). Put it in a
+  `local.md` beside the skill's `SKILL.md`: it is git-ignored, and the skill says to read it when present.
 - The folder name matches the `name` in the frontmatter, in kebab-case.
 - The `description` says what the skill does, when to use it, and when not to, because it is the only part an agent sees before loading the skill.
 - Keep `SKILL.md` short and judgment-focused. Put mechanics in scripts that check their own output.
