@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+# with-timeout <seconds> <command…>: run a command in its own process group; after <seconds> stop the whole group
+# (TERM, then KILL 10 s later) and exit 124, so a stuck build or test run ends visibly instead of holding a slot.
+# macOS has no `timeout`. The command's stdin is /dev/null: nothing in a gate may wait for a person.
+use strict;
+my $secs = shift @ARGV;
+die "usage: with-timeout <seconds> <command…>\n" unless $secs =~ /^\d+$/ && @ARGV;
+my $pid = fork;
+die "fork: $!\n" unless defined $pid;
+if (!$pid) {
+    setpgrp(0, 0);
+    open STDIN, '<', '/dev/null';
+    exec @ARGV or do { print STDERR "with-timeout: cannot run $ARGV[0]: $!\n"; exit 127 };
+}
+$SIG{ALRM} = sub {
+    print STDERR "\nwith-timeout: TIMEOUT after ${secs}s: @ARGV\n";
+    kill 'TERM', -$pid; sleep 10; kill 'KILL', -$pid;
+    waitpid($pid, 0);
+    exit 124;
+};
+$SIG{TERM} = $SIG{INT} = sub { kill 'TERM', -$pid; waitpid($pid, 0); exit 143 };
+alarm $secs;
+waitpid($pid, 0);
+exit($? & 127 ? 128 + ($? & 127) : $? >> 8);
