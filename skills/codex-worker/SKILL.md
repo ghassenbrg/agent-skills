@@ -82,7 +82,9 @@ What the script guarantees:
   failed reads; an interrupted launcher stops Codex too.
 - **Independent of where it started.** It copies its helpers to a private temporary folder at start, so the folder
   it was launched from (often a worktree) may be removed while the task runs.
-- **Refs checked.** It fails loudly if a protected branch, its origin copy, a tag or the git config moved.
+- **Refs checked.** It fails loudly if a tag or the git config changed (branch entries aside: worktrees add them), or if
+  a protected branch or its origin copy was deleted, rewritten or given Codex's commits. A protected branch that only
+  moved forward (you landed something meanwhile) is printed as a NOTE: check it was you.
 
 Codex's HANDBACK is in `.codex-task/<branch>.md`, its log beside it. Exit codes: 0 ran, 1 failed, 2 bad arguments,
 3 refused or stopped by the budget, 4 left uncommitted (a file that runs changed).

@@ -60,6 +60,12 @@ for line in sys.stdin:
         sleep 9; echo "slow $RANDOM" >> "$dir/work.txt"
         printf 'Worker commit\n' > "$(dirname "$out")/$(basename "$out" .md).commit.txt" ;;
       sleep) echo partial >> "$dir/work.txt"; echo $$ > "$FAKE_DIR/exec-pid"; sleep 120 ;;
+      land-ff)   # meanwhile the lead lands another branch (main moves forward) and adds a worktree (branch config)
+        git -C "$dir" update-ref refs/heads/main "$(git -C "$dir" commit-tree 'main^{tree}' -p main -m landed)"
+        git -C "$dir" config branch.other.remote origin
+        echo "done $RANDOM" >> "$dir/work.txt"
+        printf 'Worker commit\n' > "$(dirname "$out")/$(basename "$out" .md).commit.txt" ;;
+      rewind-main) git -C "$dir" update-ref refs/heads/main "$(git -C "$dir" commit-tree 'main^{tree}' -m rewritten)" ;;
       move-main) git -C "$dir" commit -q --allow-empty -m moved; git -C "$dir" update-ref refs/heads/main HEAD ;;
       no-message) echo more >> "$dir/work.txt" ;;
       edit-runnable)   # a change that pre-commit would run unsandboxed, beside an app change and a new executable
@@ -258,6 +264,17 @@ PASS=$((PASS + 1))
 
 echo move-main > "$FAKE/exec-mode"
 check main-moved 1 'changed during the task' -- "$TASK" "$WT" "$CARD"
+git -C "$WT" reset -q --hard "$(git -C "$WT" rev-parse HEAD~1)"   # drop the stand-in's commit
+
+# The lead lands another branch and adds a worktree while the task runs: a note, not a failure; the work is committed.
+echo land-ff > "$FAKE/exec-mode"
+check landed-meanwhile 0 'NOTE: refs/heads/main moved forward' -- "$TASK" "$WT" "$CARD"
+git -C "$WT" log -1 --format=%s | grep -qx 'Worker commit' || { echo "FAIL landed-meanwhile: work not committed"; exit 1; }
+PASS=$((PASS + 1))
+
+# A protected branch rewritten (not a fast-forward) still fails.
+echo rewind-main > "$FAKE/exec-mode"
+check main-rewritten 1 'changed during the task' -- "$TASK" "$WT" "$CARD"
 
 [ -z "$(ls "$TMPDIR")" ] || { echo "FAIL cleanup: private copies left behind: $(ls "$TMPDIR")"; exit 1; }
 PASS=$((PASS + 1))

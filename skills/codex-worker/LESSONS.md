@@ -19,5 +19,11 @@ Dated, 1-2 lines each: what happened, what to do. A lesson that is a rule also g
   failed and would have stopped Codex mid-card. The launcher now runs from private copies of its helpers (test
   launch-folder-removed). With a copy that lacks this fix: never remove a folder whose scripts a running task uses.
 - 2026-11-17 Cost (Plus plan): gpt-6.1-terra high, one script plus a 12-check self-test: about 2 min, 5-hour window
-  +3%. gpt-6.1-sol high, a 9-language strings card (about 1,400 lines in ten files): 18 min and counting, 5-hour +10%,
-  weekly +3%. Sol on a big card costs several times Terra.
+  +3%. gpt-6.1-sol high, a 9-language strings card (187 values, about 1,400 lines in ten files, a 369-line report):
+  about 20 min, 5-hour +13%, weekly +3%. Sol on a big card costs about 4x Terra on a small one.
+- 2026-11-17 Codex's strings were mechanically clean (scope, placeholders, lengths), but it dropped well-known search
+  synonyms (Parchís, 飞行棋). Review its judgement calls, not just the form.
+- 2026-11-17 The refs check failed a good task because the lead landed branches and added a worktree meanwhile
+  (main moved, branch.* config changed). Now a protected branch that moves forward without Codex's commits is a NOTE;
+  deleted, rewritten or holding Codex's commits still fails, and branch.* config is ignored (tests landed-meanwhile,
+  main-rewritten).

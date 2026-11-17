@@ -173,13 +173,20 @@ trap 'rm -f "$SLOTS/$NAME.pid"; "${CLEANUP[@]}"' EXIT
 
 # MARK: The run
 
-snapshot() {
+# What Codex must not change. Protected branches are compared one by one after the run, since the lead may land other
+# work meanwhile; tags and the git config must stay exactly as they were, except branch.* entries, which adding or
+# removing a worktree changes.
+snap_refs() {
   local b refs=()
   for b in $PROTECTED; do refs+=("refs/heads/$b" "refs/remotes/origin/$b"); done
-  git -C "$WT" for-each-ref --format='%(refname) %(objectname)' "${refs[@]}" refs/tags
-  git config --file "$COMMON/config" --list 2>/dev/null
+  git -C "$WT" for-each-ref --format='%(refname) %(objectname)' "${refs[@]}"
 }
-BEFORE=$(snapshot)
+snap_rest() {
+  git -C "$WT" for-each-ref --format='%(refname) %(objectname)' refs/tags
+  git config --file "$COMMON/config" --list 2>/dev/null | grep -v '^branch\.' || true
+}
+BEFORE_REFS=$(snap_refs)
+BEFORE_REST=$(snap_rest)
 rm -f "$OUT" "$MSG"
 echo "codex-task: Codex starts on $BRANCH in $WT ($MODEL, $EFFORT; $("$CODEX" --version 2>/dev/null | head -1)); log $LOG"
 # with-timeout runs Codex in a process group of its own, whose id is with-timeout's child's pid. Its id is taken once,
@@ -229,8 +236,28 @@ done
 wait "$RUN"
 rc=$?
 
-[ "$(snapshot)" = "$BEFORE" ] || fail "FAILED: a protected branch, its origin copy, a tag or the git config changed during the task. Before and after:
-$(diff <(printf '%s\n' "$BEFORE") <(snapshot))"
+[ "$(snap_rest)" = "$BEFORE_REST" ] || fail "FAILED: a tag or the git config changed during the task. Before and after:
+$(diff <(printf '%s\n' "$BEFORE_REST") <(snap_rest))"
+# A protected branch may only have moved forward, to work that isn't Codex's (a landing): any commit Codex made on
+# its branch must not be in it. Deleted or rewritten fails.
+AFTER_REFS=$(snap_refs)
+REF_NOTES=""
+while read -r ref old; do
+  [ -n "$ref" ] || continue
+  new=$(awk -v r="$ref" '$1 == r { print $2 }' <<<"$AFTER_REFS")
+  [ "$new" != "$old" ] || continue
+  [ -n "$new" ] || fail "FAILED: $ref was deleted (changed during the task)"
+  git -C "$WT" merge-base --is-ancestor "$old" "$new" \
+    || fail "FAILED: $ref was rewritten, not moved forward (changed during the task): ${old:0:12} -> ${new:0:12}"
+  OURS=$(comm -12 <(git -C "$WT" rev-list "$old..$new" | sort) <(git -C "$WT" rev-list "$TIP..HEAD" | sort))
+  [ -z "$OURS" ] || fail "FAILED: $ref now holds commits made on $BRANCH during the task (changed during the task)"
+  REF_NOTES+="NOTE: $ref moved forward during the task (${old:0:12} -> ${new:0:12}, $(git -C "$WT" rev-list --count "$old..$new") commits): a landing? Check it was one."$'\n'
+done <<<"$BEFORE_REFS"
+while read -r ref new; do
+  [ -z "$ref" ] || grep -q "^$ref " <<<"$BEFORE_REFS" \
+    || REF_NOTES+="NOTE: $ref was created during the task, at ${new:0:12}"$'\n'
+done <<<"$AFTER_REFS"
+[ -z "$REF_NOTES" ] || printf '%s' "$REF_NOTES"
 
 echo "codex-task: codex exited $rc$( [ $rc = 124 ] && echo ' (timed out)')"
 [ "$(git -C "$WT" rev-parse HEAD)" = "$TIP" ] || echo "WARNING: $BRANCH moved during the task (Codex should not commit)"
