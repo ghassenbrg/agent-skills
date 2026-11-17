@@ -15,3 +15,9 @@ Dated, 1-2 lines each: what happened, what to do. A lesson that is a rule also g
 - 2026-11-17 Two Codex review rounds and one Claude review each found real defects in this launcher. Run a
   cross-review on any change to the scripts.
 - 2026-11-17 First real run of this generic launcher (scratch repo, gpt-6.1-terra low): one-line card committed, `.codex-task/` stayed out of git.
+- 2026-11-17 A worktree was removed while a task launched from its scripts still ran: the watchdog's usage reads
+  failed and would have stopped Codex mid-card. The launcher now runs from private copies of its helpers (test
+  launch-folder-removed). With a copy that lacks this fix: never remove a folder whose scripts a running task uses.
+- 2026-11-17 Cost (Plus plan): gpt-6.1-terra high, one script plus a 12-check self-test: about 2 min, 5-hour window
+  +3%. gpt-6.1-sol high, a 9-language strings card (about 1,400 lines in ten files): 18 min and counting, 5-hour +10%,
+  weekly +3%. Sol on a big card costs several times Terra.

@@ -50,6 +50,13 @@ fail() { echo "codex-task: $*" >&2; exit 1; }
 refuse() { echo "codex-task: REFUSED: $*" >&2; exit 3; }
 
 SCRIPTS=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+# The watchdog runs codex-usage.sh for the whole run, and the folder this launcher came from may go meanwhile (a
+# worktree cleaned up). Run from private copies, made now and removed at exit.
+OWN=$(mktemp -d "${TMPDIR:-/tmp}/codex-task.XXXXXX") || fail "could not make a temporary folder"
+CLEANUP=(rm -rf "$OWN")
+trap '"${CLEANUP[@]}"' EXIT
+cp "$SCRIPTS/codex-usage.sh" "$SCRIPTS/with-timeout" "$OWN/" || fail "could not copy the helper scripts"
+SCRIPTS=$OWN
 CODEX=${CODEX_BIN:-codex}
 MAX_5H=${CODEX_TASK_MAX_5H:-80}
 STOP_5H=${CODEX_TASK_STOP_5H:-90}
@@ -162,7 +169,7 @@ else echo $$ > "$SLOTS/$NAME.pid"
 fi
 rm -rf "$LOCK"
 [ -z "$SLOT_ERR" ] || refuse "$SLOT_ERR"
-trap 'rm -f "$SLOTS/$NAME.pid"' EXIT
+trap 'rm -f "$SLOTS/$NAME.pid"; "${CLEANUP[@]}"' EXIT
 
 # MARK: The run
 

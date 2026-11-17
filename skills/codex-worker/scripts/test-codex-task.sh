@@ -7,6 +7,7 @@ set -euo pipefail
 SCRIPTS=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
+mkdir -p "$TMP/tmpdir"; export TMPDIR=$TMP/tmpdir   # where the launcher keeps its private copies
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t \
   GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t
 
@@ -55,6 +56,9 @@ for line in sys.stdin:
         echo $$ > "$FAKE_DIR/exec-pid"
         ( trap '' TERM; sleep 120 ) & echo $! > "$FAKE_DIR/child-pid"
         sleep 120 ;;
+      slow-commit)   # a worker that takes a while, then hands back like 'commit'
+        sleep 9; echo "slow $RANDOM" >> "$dir/work.txt"
+        printf 'Worker commit\n' > "$(dirname "$out")/$(basename "$out" .md).commit.txt" ;;
       sleep) echo partial >> "$dir/work.txt"; echo $$ > "$FAKE_DIR/exec-pid"; sleep 120 ;;
       move-main) git -C "$dir" commit -q --allow-empty -m moved; git -C "$dir" update-ref refs/heads/main HEAD ;;
       no-message) echo more >> "$dir/work.txt" ;;
@@ -241,7 +245,21 @@ echo no-message > "$FAKE/exec-mode"
 check no-message 0 'wrote no commit message' -- "$TASK" "$WT" "$CARD"
 git -C "$WT" checkout -q -- .
 
+# The folder the launcher started from is removed mid-run (a worktree cleaned up): the watchdog still reads usage
+# from its own copies, so the task finishes and commits.
+echo slow-commit > "$FAKE/exec-mode"
+echo "10 40" > "$FAKE/usage"
+mkdir -p "$TMP/launch"
+cp "$SCRIPTS/codex-task.sh" "$SCRIPTS/codex-usage.sh" "$SCRIPTS/with-timeout" "$TMP/launch/"
+( sleep 2; rm -rf "$TMP/launch" ) &
+check launch-folder-removed 0 'Worker commit' -- env CODEX_TASK_POLL=2 CODEX_TASK_READ_FAILS=2 "$TMP/launch/codex-task.sh" "$WT" "$CARD"
+[ ! -e "$TMP/launch" ] || { echo "FAIL launch-folder-removed: the folder was never removed"; exit 1; }
+PASS=$((PASS + 1))
+
 echo move-main > "$FAKE/exec-mode"
 check main-moved 1 'changed during the task' -- "$TASK" "$WT" "$CARD"
+
+[ -z "$(ls "$TMPDIR")" ] || { echo "FAIL cleanup: private copies left behind: $(ls "$TMPDIR")"; exit 1; }
+PASS=$((PASS + 1))
 
 echo "test-codex-task: $PASS checks passed"

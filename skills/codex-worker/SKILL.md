@@ -80,6 +80,8 @@ What the script guarantees:
   The hooks or the gates would run that code with your rights.
 - **Budget watched.** It reads usage every 2 minutes and stops the whole process group at the stop limit or after 3
   failed reads; an interrupted launcher stops Codex too.
+- **Independent of where it started.** It copies its helpers to a private temporary folder at start, so the folder
+  it was launched from (often a worktree) may be removed while the task runs.
 - **Refs checked.** It fails loudly if a protected branch, its origin copy, a tag or the git config moved.
 
 Codex's HANDBACK is in `.codex-task/<branch>.md`, its log beside it. Exit codes: 0 ran, 1 failed, 2 bad arguments,
